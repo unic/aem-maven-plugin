@@ -1,5 +1,5 @@
 # Unic Maven-AEM-plugin
-A plugin for working with local and remote Adone AEM&trade; instances. This plugin allows installing, starting, stopping and killing AEM instances,
+A plugin for working with local and remote Adobe AEM&trade; instances. This plugin allows installing, starting, stopping and killing AEM instances,
 conveniently deploying CRX packages and validating JCR content XML files prior to packaging and deploying it.
 
 The plugins main design goals are:

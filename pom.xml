@@ -6,7 +6,9 @@
     <artifactId>aem-maven-plugin</artifactId>
     <version>2.0.0-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
-    <name>aem-maven-plugin</name>
+    <name>AEM Maven plugin</name>
+
+    <url>https://unic.github.io/aem-maven-plugin/</url>
 
     <description>
         The AEM maven plugin allows orchestration of AEM installation, start and stop as well as the reliable deployment
@@ -15,6 +17,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.scm.id>github</project.scm.id>
     </properties>
 
     <licenses>
@@ -26,24 +29,66 @@
 
     <developers>
         <developer>
+            <id>merlePL</id>
+            <name>Joanna Tarka</name>
+            <email>joanna.tarka@unic.com</email>
+            <organization>Unic AG</organization>
+            <organizationUrl>https://www.unic.com</organizationUrl>
+        </developer>
+        <developer>
             <id>olaf-otto</id>
             <name>Olaf Otto</name>
             <email>olaf.otto@unic.com</email>
             <organization>Unic AG</organization>
-            <organizationUrl>http://www.unic.com</organizationUrl>
+            <organizationUrl>https://www.unic.com</organizationUrl>
         </developer>
     </developers>
+
+    <scm>
+        <url>https://github.com/unic/maven-aem-plugin</url>
+        <connection>scm:git:https://github.com/unic/aem-maven-plugin</connection>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh-aem-maven-plugin</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh-aem-maven-plugin</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <profiles>
+        <profile>
+            <!-- from http://repo1.maven.org/maven2/org/sonatype/oss/oss-parent/7/oss-parent-7.pom -->
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <configuration>
+                            <keyname><![CDATA[Maven AEM plugin team <info@unic.com>]]></keyname>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>3.0.1</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>3.0.1</version>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
                 </plugin>
                 <plugin>
                     <artifactId>maven-deploy-plugin</artifactId>
@@ -59,6 +104,20 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.6</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-plugin-plugin</artifactId>
                     <version>3.6.0</version>
                     <executions>
@@ -71,6 +130,36 @@
                             <goals>
                                 <goal>helpmojo</goal>
                             </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.0.1</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.0.1</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                            <configuration>
+                                <quiet>true</quiet>
+                                <additionalOptions>-Xdoclint:none</additionalOptions>
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
@@ -114,25 +203,6 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/assembly/jar-with-dependencies.xml</descriptor>
-                    </descriptors>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
