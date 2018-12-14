@@ -3,6 +3,8 @@ A plugin for working with local and remote Adobe AEM&trade; instances. This plug
 conveniently deploying CRX packages and validating JCR content XML files prior to packaging and deploying it.
 
 [![Maven Central](https://img.shields.io/maven-central/v/com.unic.maven.plugins/aem-maven-plugin.svg)](https://search.maven.org/search?q=a:aem-maven-plugin&g=com.unic.maven.plugins)
+[![Travis](https://api.travis-ci.org/unic/aem-maven-plugin.svg?branch=master)](https://travis-ci.org/unic/aem-maven-plugin/) 
+
 
 The plugins main design goals are:
 
