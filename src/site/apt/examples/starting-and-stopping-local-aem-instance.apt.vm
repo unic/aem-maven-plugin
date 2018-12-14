@@ -1,0 +1,115 @@
+ ------
+ Starting and stopping a local AEM instance
+ ------
+ Olaf Otto
+ ------
+ 2018-12-14
+ ------
+
+~~ Licensed to the Apache Software Foundation (ASF) under one
+~~ or more contributor license agreements.  See the NOTICE file
+~~ distributed with this work for additional information
+~~ regarding copyright ownership.  The ASF licenses this file
+~~ to you under the Apache License, Version 2.0 (the
+~~ "License"); you may not use this file except in compliance
+~~ with the License.  You may obtain a copy of the License at
+~~
+~~   http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing,
+~~ software distributed under the License is distributed on an
+~~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+~~ KIND, either express or implied.  See the License for the
+~~ specific language governing permissions and limitations
+~~ under the License.
+
+~~ NOTE: For help with the syntax of this file, see:
+~~ http://maven.apache.org/doxia/references/apt-format.html
+
+Starting and stopping local AEM instances
+
+ The plugin expects an {{{https://helpx.adobe.com/experience-manager/6-4/sites/deploying/using/deploy.html#GettingtheSoftware}AEM quickstart jar}} in the location target/aem/[type], e.g. target/aem/author. For instance, one can use the
+ {{{https://maven.apache.org/plugins/maven-dependency-plugin/unpack-mojo.html}unpack mojo}} of the maven-dependency-plugin to copy the quistart.jar and the license.properties there.
+ Subsequently, invoking
+
++-----+
+ mvn aem:start
++-----+
+
+ Will start the respective AEM instance. If the quickstart is started for the first time, i.e. AEM is installed, the start mojo will detect that and grant the startup process and inittialization
+ more time to complete (three times the initialization wait time).
+
++-----+
+ mvn aem:stop
++-----+
+
+ Will stop the previously started instance, if it is running. If stopping the instance gracefully fails within the configurable shutdownWaitTime, the plugin will
+ attempt to kill the AEM process. You can also kill the process directly by invoking
+
++-----+
+ mvn aem:kill
++-----+
+
+ The following is a sample POM using the maven-dependency-plugin to provide a quickstart.jar and license.properties.
+
+ The aem maven plugin is instructed to launch an instance in the {{{https://helpx.adobe.com/experience-manager/6-4/sites/administering/using/production-ready.html}nosamplecontent runode}}
+ It expicitly configures the startup wait time to three minutes. When the plugin detects that the quickstart is started for the first time, it thus extends
+ the startupWaitTime to 9 minutes.
+
++-----+
+ <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+     <modelVersion>4.0.0</modelVersion>
+     <groupId>com.example.company</groupId>
+     <artifactId>aem-integration</artifactId>
+     <version>1.0.0-SNAPSHOT</version>
+     <packaging>pom</packaging>
+     <name>AEM integration module</name>
+
+     <build>
+         <plugins>
+             <plugin>
+                 <artifactId>maven-dependency-plugin</artifactId>
+                 <version>3.1.1</version>
+                 <executions>
+                     <execution>
+                         <id>prepare-cq-quickstart</id>
+                         <phase>generate-test-resources</phase>
+                         <goals>
+                             <goal>unpack</goal>
+                         </goals>
+                         <configuration>
+                             <artifactItems>
+                                 <artifactItem>
+                                     <!-- In this example, this zip contains a quickstart.jar and license.properties -->
+                                     <groupId>com.example.company</groupId>
+                                     <artifactId>aem-6.4</artifactId>
+                                     <version>1.0.0</version>
+                                     <type>zip</type>
+                                     <overWrite>true</overWrite>
+                                     <outputDirectory>\${project.build.directory}/aem/author</outputDirectory>
+                                 </artifactItem>
+                             </artifactItems>
+                         </configuration>
+                     </execution>
+                 </executions>
+             </plugin>
+             <plugin>
+                 <groupId>com.unic.maven.plugins</groupId>
+                 <artifactId>aem-maven-plugin</artifactId>
+                 <version>${project.version}</version>
+                 <configuration>
+                     <!-- Up to three minutes startup wait time.
+                     When the plugin detects that AEM is started for the first time (installed), this timeout is automatically tripled. -->
+                     <startupWaitTime>3</startupWaitTime>
+                     <aemType>author</aemType>
+                     <runModes>
+                         <runMode>nosamplecontent</runMode>
+                     </runModes>
+                 </configuration>
+             </plugin>
+         </plugins>
+     </build>
+
+ </project>
++-----+

@@ -28,7 +28,7 @@
 
 ${project.name}
 
- The AEM maven plugin handles starting, stopping and deploying to Adobe AEM&trade; instances. It is build to conveniently detect and handle
+ The AEM maven plugin handles starting, stopping and deploying to Adobe AEM instances. It is build to conveniently detect and handle
  the complex system state transitions occuring during the AEM instance life cycle in order to maximize reliability.
  The plugin has been developed at Unic AG, switzerland since 2009 and is used as a tool for both local development and to automate Continuous Integration involving the creation and deployment
  of build-local AEM instances.

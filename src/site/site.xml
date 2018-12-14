@@ -33,5 +33,10 @@ under the License.
             <item name="Goals" href="plugin-info.html"/>
             <item name="License" href="http://www.apache.org/licenses/"/>
         </menu>
+        <menu name="Examples">
+            <item name="Start, stop and kill an AEM instance" href="/examples/starting-and-stopping-local-aem-instance.html"/>
+            <item name="Deploy files and artifacts to AEM" href="/examples/deploying-build-artifacts.html"/>
+            <item name="Configure Continuous Integration" href="/examples/continuous-integration.html"/>
+        </menu>
     </body>
 </project>

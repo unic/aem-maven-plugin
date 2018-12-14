@@ -1,0 +1,120 @@
+ ------
+ Continuous integration with the aem-maven-plugin
+ ------
+ Olaf Otto
+ ------
+ 2018-12-14
+ ------
+
+~~ Licensed to the Apache Software Foundation (ASF) under one
+~~ or more contributor license agreements.  See the NOTICE file
+~~ distributed with this work for additional information
+~~ regarding copyright ownership.  The ASF licenses this file
+~~ to you under the Apache License, Version 2.0 (the
+~~ "License"); you may not use this file except in compliance
+~~ with the License.  You may obtain a copy of the License at
+~~
+~~   http://www.apache.org/licenses/LICENSE-2.0
+~~
+~~ Unless required by applicable law or agreed to in writing,
+~~ software distributed under the License is distributed on an
+~~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+~~ KIND, either express or implied.  See the License for the
+~~ specific language governing permissions and limitations
+~~ under the License.
+
+~~ NOTE: For help with the syntax of this file, see:
+~~ http://maven.apache.org/doxia/references/apt-format.html
+
+Continuous integration with the aem-maven-plugin
+
+ For continuous integration on a CI server, the usual lifecycle is:
+
+ Prepare quickstart artifact and license -> install and start AEM instance -> deploy project artifacts -> restart -> await initialization -> execute tests -> kill instance
+
+ This process can easily be modeled using the aem-maven plugin. The following example
+
+     [[1]] provides a basic quickstart artifact (or pre-cooked AEM version) via the maven-dependency-plugin
+
+     [[2]] starts or installs AEM via aem:start (this includes waiting for complete initialization)
+
+     [[3]] deploys artifacts
+
+     [[4]] restarts
+
+     [[5]] executes integration tests
+
+     [[6]] kills the instance
+
+ Note that this sample config explicitly increases the timeout values for startup and installation - this can be necessary if deployments and configurations cause
+ aem (re-)starts to take long. In addition, the {{{https://unic.github.io/aem-maven-plugin/deploy-mojo.html#pauseJcrInstaller}pauseJcrInstaller}} flag
+ will pause the installer before deployment and activate it afterwards. This means that bundles and configurations are not installed or applied while the
+ deployment is running, thus stabilizing the deployment.
+
++-----+
+ <plugin>
+     <artifactId>maven-dependency-plugin</artifactId>
+     <version>3.1.1</version>
+     <executions>
+         <execution>
+             <id>prepare-cq-quickstart</id>
+             <phase>generate-test-resources</phase>
+             <goals>
+                 <goal>unpack</goal>
+             </goals>
+             <configuration>
+                 <artifactItems>
+                     <artifactItem>
+                         <!-- In this example, this zip contains a quickstart.jar and license.properties -->
+                         <groupId>com.example.company</groupId>
+                         <artifactId>aem-6.4</artifactId>
+                         <version>1.0.0</version>
+                         <type>zip</type>
+                         <overWrite>true</overWrite>
+                         <outputDirectory>\${project.build.directory}/aem/publish</outputDirectory>
+                     </artifactItem>
+                 </artifactItems>
+             </configuration>
+         </execution>
+     </executions>
+ </plugin>
+ <plugin>
+     <groupId>com.unic.maven.plugins</groupId>
+     <artifactId>aem-maven-plugin</artifactId>
+     <version>${project.version}</version>
+     <configuration>
+         <aemType>publish</aemType>
+         <startupWaitTime>5</startupWaitTime>
+         <initializationWaitTime>5</initializationWaitTime>
+         <shutdownWaitTime>5</shutdownWaitTime>
+         <pauseJcrInstaller>true</pauseJcrInstaller>
+     </configuration>
+     <executions>
+         <execution>
+             <id>prepare-aem-instance-for-test</id>
+             <phase>pre-integration-test</phase>
+             <goals>
+                 <goal>kill</goal> <!-- Make sure no orphaned instance is running, e.g. due to a previously aborted build -->
+                 <goal>start</goal> <!-- Start or install the instance -->
+                 <goal>deploy</goal> <!-- Deploy the artifacts and / or files configured below -->
+                 <goal>restart</goal> <!-- Stop and Start -->
+             </goals>
+             <configuration>
+                 <deployArtifacts>
+                     <artifact>com.acme.groupId:acme-app-configurations:zip:\${project.version}</artifact>
+                     <artifact>com.acme.groupId:acme-app-thirdparties:zip:\${project.version}</artifact>
+                     <artifact>com.acme.groupId:acme-app:zip:\${project.version}</artifact>
+                     <artifact>com.acme.groupId:acme-testcontent:zip:\${project.version}</artifact>
+                 </deployArtifacts>
+             </configuration>
+         </execution>
+         <execution>
+             <id>terminate</id>
+             <phase>post-integration-test</phase>
+             <goals>
+                 <goal>kill</goal>
+             </goals>
+         </execution>
+     </executions>
+ </plugin>
++-----+
