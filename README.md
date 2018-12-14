@@ -2,6 +2,8 @@
 A plugin for working with local and remote Adobe AEM&trade; instances. This plugin allows installing, starting, stopping and killing AEM instances,
 conveniently deploying CRX packages and validating JCR content XML files prior to packaging and deploying it.
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.unic.maven.plugins/aem-maven-plugin.svg)](https://search.maven.org/search?q=a:aem-maven-plugin&g=com.unic.maven.plugins)
+
 The plugins main design goals are:
 
 * Speed: Both the AEM instance and the deployments are are configured for maximum performance, e.g. using generous auto save thresholds and memory settings
