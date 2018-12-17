@@ -52,7 +52,7 @@ Starting and stopping local AEM instances
 
  The following is a sample POM using the maven-dependency-plugin to provide a quickstart.jar and license.properties.
 
- The aem maven plugin is instructed to launch an instance in the {{{https://helpx.adobe.com/experience-manager/6-4/sites/administering/using/production-ready.html}nosamplecontent runode}}
+ The aem maven plugin is instructed to launch an instance in the {{{https://helpx.adobe.com/experience-manager/6-4/sites/administering/using/production-ready.html}nosamplecontent run mode}}
  It expicitly configures the startup wait time to three minutes. When the plugin detects that the quickstart is started for the first time, it thus extends
  the startupWaitTime to 9 minutes.
 
