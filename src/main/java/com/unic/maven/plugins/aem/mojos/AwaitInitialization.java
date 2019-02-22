@@ -12,11 +12,7 @@
  */
 package com.unic.maven.plugins.aem.mojos;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import com.unic.maven.plugins.aem.util.Expectation;
-import org.apache.http.annotation.ThreadSafe;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -25,11 +21,14 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import unirest.HttpResponse;
+import unirest.JsonNode;
+import unirest.Unirest;
+import unirest.UnirestException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mashape.unirest.http.Unirest.get;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -40,8 +39,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *
  * @author Olaf Otto
  */
-@Mojo(name = "awaitInitialization")
-@ThreadSafe
+@Mojo(name = "awaitInitialization", threadSafe = true, requiresProject = false)
 public class AwaitInitialization extends AemMojo {
     /**
      * OSGi spec bundle states.
@@ -230,7 +228,7 @@ public class AwaitInitialization extends AemMojo {
     }
 
     private HttpResponse<JsonNode> getJson(String path) throws UnirestException {
-        return get(getAemBaseUrl() + path)
+        return Unirest.get(getAemBaseUrl() + path)
                 .basicAuth("admin", getAdminPassword())
                 .asJson();
     }

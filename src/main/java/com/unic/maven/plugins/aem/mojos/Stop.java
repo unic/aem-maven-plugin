@@ -12,23 +12,20 @@
  */
 package com.unic.maven.plugins.aem.mojos;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import com.unic.maven.plugins.aem.util.Expectation;
 import com.unic.maven.plugins.aem.util.FileUtil;
-import org.apache.http.annotation.ThreadSafe;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.jetbrains.annotations.NotNull;
+import unirest.HttpResponse;
+import unirest.Unirest;
+import unirest.UnirestException;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.mashape.unirest.http.Unirest.get;
-import static com.mashape.unirest.http.Unirest.post;
-import static com.mashape.unirest.http.Unirest.setTimeouts;
 import static com.unic.maven.plugins.aem.util.AwaitableProcess.awaitable;
 import static com.unic.maven.plugins.aem.util.ExceptionUtil.getRootCause;
 import static java.lang.System.currentTimeMillis;
@@ -47,8 +44,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  *
  * @author Olaf Otto
  */
-@Mojo(name = "stop")
-@ThreadSafe
+@Mojo(name = "stop", threadSafe = true, requiresProject = false)
 public class Stop extends Kill {
     /**
      * Wait up to this number of minutes for AEM to stop
@@ -79,8 +75,6 @@ public class Stop extends Kill {
     }
 
     private boolean shutdownAem() throws MojoFailureException, MojoExecutionException {
-        setTimeouts(SECONDS.toMillis(5), SECONDS.toMillis(5));
-
         getLog().info("Checking whether system/console is available...");
         if (!systemConsoleIsAvailable().within(20, SECONDS)) {
             getLog().info("Unable to gracefully shutdown AEM: the system/console is not available.");
@@ -91,7 +85,7 @@ public class Stop extends Kill {
 
         try {
             HttpResponse<String> response =
-                    post("http://localhost:" + getHttpPort() + getContextPath() + "/system/console/vmstat")
+                    Unirest.post("http://localhost:" + getHttpPort() + getContextPath() + "/system/console/vmstat")
                             .basicAuth("admin", getAdminPassword())
                             .field("shutdown_type", "stop").asString();
 
@@ -120,7 +114,7 @@ public class Stop extends Kill {
             @Override
             protected Outcome fulfill() {
                 try {
-                    return get("http://localhost:" + getHttpPort() + getContextPath() + "/system/console/vmstat")
+                    return Unirest.get("http://localhost:" + getHttpPort() + getContextPath() + "/system/console/vmstat")
                             .basicAuth("admin", getAdminPassword())
                             .asString()
                             .getStatus() == 200 ? Outcome.FULFILLED : Outcome.RETRY;

@@ -13,7 +13,6 @@
 package com.unic.maven.plugins.aem.mojos;
 
 import com.unic.maven.plugins.aem.util.Expectation;
-import org.apache.http.annotation.ThreadSafe;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -48,8 +47,7 @@ import static java.util.regex.Pattern.compile;
  *
  * @author Olaf Otto
  */
-@Mojo(name = "kill")
-@ThreadSafe
+@Mojo(name = "kill", threadSafe = true, requiresProject = false)
 public class Kill extends AemMojo {
     private static final Pattern AEM_PID = compile("([0-9]+) ((cq.?|aem.?)-.*\\.jar .*)");
     private final ExecutorService executorService = newCachedThreadPool();

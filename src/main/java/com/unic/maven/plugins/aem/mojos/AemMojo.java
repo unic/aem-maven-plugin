@@ -12,15 +12,14 @@
  */
 package com.unic.maven.plugins.aem.mojos;
 
-import com.mashape.unirest.http.Unirest;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.jetbrains.annotations.NotNull;
+import unirest.Unirest;
 
 import java.io.File;
-import java.io.IOException;
 
 import static java.io.File.separator;
 import static java.lang.System.getProperty;
@@ -39,7 +38,7 @@ public abstract class AemMojo extends AbstractMojo {
      * The schema + hostname of the AEM instance, e.g. "http://localhost".
      */
     @Parameter(defaultValue = "http://localhost",
-               property = "aem.baseUrl")
+            property = "aem.baseUrl")
     private String baseUrl;
 
     /**
@@ -85,7 +84,7 @@ public abstract class AemMojo extends AbstractMojo {
     private String javaHome;
 
     @Parameter(defaultValue = "${project.build.directory}",
-               readonly = true)
+            readonly = true)
     private File targetDirectory;
 
     /**
@@ -122,14 +121,10 @@ public abstract class AemMojo extends AbstractMojo {
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {
         try {
-            Unirest.setTimeouts(SECONDS.toMillis(10), SECONDS.toMillis(10));
+            Unirest.config().connectTimeout((int) SECONDS.toMillis(10)).socketTimeout((int) SECONDS.toMillis(10));
             runMojo();
         } finally {
-            try {
-                Unirest.shutdown();
-            } catch (IOException e) {
-                getLog().debug("Unable to shut down unirest.", e);
-            }
+            Unirest.shutDown();
         }
     }
 

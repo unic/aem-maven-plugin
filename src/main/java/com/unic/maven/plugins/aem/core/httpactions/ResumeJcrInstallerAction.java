@@ -12,11 +12,10 @@
  */
 package com.unic.maven.plugins.aem.core.httpactions;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import org.jetbrains.annotations.NotNull;
-
-import static com.mashape.unirest.http.Unirest.post;
+import unirest.HttpResponse;
+import unirest.Unirest;
+import unirest.UnirestException;
 
 /**
  * Resumes the JCR installer by deleting the "do not install signal" content (AEM 6+)
@@ -54,7 +53,7 @@ public class ResumeJcrInstallerAction extends RetryableHttpAction<String, String
     @NotNull
     @Override
     protected HttpResponse<String> perform() throws UnirestException {
-        return post(getConfiguration().getServerUri() + "/system/sling/installer")
+        return Unirest.post(getConfiguration().getServerUri() + "/system/sling/installer")
                 .field(":operation", "delete")
                 .basicAuth("admin", getConfiguration().getPassword()).asString();
     }

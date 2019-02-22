@@ -12,17 +12,17 @@
  */
 package com.unic.maven.plugins.aem.core.httpactions;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import com.unic.maven.plugins.aem.util.Expectation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.impl.SimpleLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import unirest.HttpResponse;
+import unirest.Unirest;
+import unirest.UnirestException;
 
 import java.net.URI;
 
-import static com.mashape.unirest.http.Unirest.get;
 import static com.unic.maven.plugins.aem.util.ExceptionUtil.getRootCause;
 import static java.lang.Math.pow;
 import static java.lang.Thread.sleep;
@@ -146,7 +146,7 @@ public abstract class RetryableHttpAction<ResponseType, ResultType> {
             @Override
             protected Outcome fulfill() {
                 try {
-                    return get(configuration.getServerUri().toString() + "/crx/packmgr/service")
+                    return Unirest.get(configuration.getServerUri().toString() + "/crx/packmgr/service")
                             .basicAuth("admin", configuration.getPassword()).asString().getStatus() == 405 ?
                             Outcome.FULFILLED :
                             Outcome.RETRY;

@@ -12,7 +12,6 @@
  */
 package com.unic.maven.plugins.aem.mojos;
 
-import org.apache.http.annotation.ThreadSafe;
 import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -21,8 +20,7 @@ import org.apache.maven.plugins.annotations.Mojo;
  *
  * @author Olaf Otto
  */
-@Mojo(name = "restart")
+@Mojo(name = "restart", threadSafe = true, requiresProject = false)
 @Execute(goal = "stop")
-@ThreadSafe
 public class Restart extends Start {
 }

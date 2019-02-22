@@ -12,18 +12,16 @@
  */
 package com.unic.maven.plugins.aem.core.httpactions;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.exceptions.UnirestException;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
+import unirest.HttpResponse;
+import unirest.Unirest;
+import unirest.UnirestException;
 
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.mashape.unirest.http.Unirest.post;
-import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.regex.Pattern.compile;
 
@@ -50,7 +48,7 @@ public class InstallPackageAction extends RetryableHttpAction<String, String> {
     @Override
     protected boolean hasUnrecoverableError(@NotNull HttpResponse<String> response) {
         String body = response.getBody();
-        return body == null || body.contains("with errors") || !hasInstallationFinished(body);
+        return body == null || body.contains("with errors") || !body.contains("Package imported");
     }
 
     @NotNull
@@ -77,22 +75,23 @@ public class InstallPackageAction extends RetryableHttpAction<String, String> {
         Matcher m = errorMessagePattern.matcher(response.getBody());
         StringBuilder failureMessage = new StringBuilder(1024);
 
-        failureMessage.append("HTTP status and body: ")
+        failureMessage.append("Package manager response: ")
                 .append(response.getStatus()).append("-")
                 .append(response.getStatusText())
-                .append(": \n")
-                .append(response.getBody());
+                .append(": \n");
 
         while (m.find()) {
             failureMessage.append(m.group(1)).append(": ").append(m.group(2)).append('\n');
         }
+
+        failureMessage.append("\n\n").append(response.getBody());
 
         return failureMessage.toString();
     }
 
     @NotNull
     @Override
-    protected HttpResponse<String> perform() throws UnirestException, InterruptedException {
+    protected HttpResponse<String> perform() throws UnirestException {
         if (!packageManagerApiIsAvailable(getConfiguration()).within(getTotalBackoffTimeInSeconds(), SECONDS)) {
             throw new HttpActionFailureException("Unable to install " + file + " - the package manager API was unavailable for "
                     + getTotalBackoffTimeInSeconds() + " seconds.");
@@ -101,33 +100,10 @@ public class InstallPackageAction extends RetryableHttpAction<String, String> {
         String url = new URIBuilder(getConfiguration().getServerUri()).setPath("/crx/packmgr/service/console.html" + packagePath)
                 .addParameter("cmd", "install").toString();
 
-        HttpResponse<String> response = post(url)
+        return Unirest.post(url)
                 .field("autosave", deploySaveThreshold)
-                .field("recursive", deploySubpackages)
+                .field("recursive", Boolean.toString(deploySubpackages))
                 .basicAuth("admin", getConfiguration().getPassword()).asString();
 
-        if (response.getStatus() == HttpStatus.SC_OK) {
-            waitingForInstallationToFinish(response);
-        }
-
-        return response;
-    }
-
-    private void waitingForInstallationToFinish(HttpResponse<String> response) throws InterruptedException {
-        String body = response.getBody();
-        int retries = 0;
-        int maxRetries = 20;
-        while (retries < maxRetries) {
-            getConfiguration().getLog().debug("Waiting for installation...");
-            sleep(2000);
-            if (hasInstallationFinished(body)) {
-                return;
-            }
-            retries++;
-        }
-    }
-
-    private boolean hasInstallationFinished(String body) {
-        return body.contains("Package imported");
     }
 }

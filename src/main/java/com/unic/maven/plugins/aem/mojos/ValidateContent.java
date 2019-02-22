@@ -12,7 +12,6 @@
  */
 package com.unic.maven.plugins.aem.mojos;
 
-import org.apache.http.annotation.ThreadSafe;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -48,8 +47,7 @@ import static org.codehaus.plexus.util.StringUtils.join;
  *
  * @author Olaf Otto
  */
-@Mojo(name = "validate-content")
-@ThreadSafe
+@Mojo(name = "validate-content", threadSafe = true, requiresProject = false)
 public class ValidateContent extends AbstractMojo {
     /**
      * Additional directories containing JCR XML content for import into AEM that shall be validated by the

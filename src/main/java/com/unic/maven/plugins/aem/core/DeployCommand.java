@@ -19,12 +19,12 @@ import com.unic.maven.plugins.aem.core.httpactions.RetryableHttpAction;
 import com.unic.maven.plugins.aem.core.httpactions.UploadPackageAction;
 import org.apache.commons.logging.Log;
 import org.jetbrains.annotations.NotNull;
+import unirest.Unirest;
 
 import java.io.File;
 import java.net.URI;
 import java.util.List;
 
-import static com.mashape.unirest.http.Unirest.setTimeouts;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -72,7 +72,7 @@ public class DeployCommand {
     public void execute() {
         // Connection shall be established within two seconds, but an installation may take up to 10 minutes,
         // for instance large content packages.
-        setTimeouts(SECONDS.toMillis(2), MINUTES.toMillis(10));
+        Unirest.config().connectTimeout((int) SECONDS.toMillis(2)).socketTimeout((int) MINUTES.toMillis(10));
 
         if (pauseJcrInstaller) {
             new PauseJcrInstallerAction(configuration).run();

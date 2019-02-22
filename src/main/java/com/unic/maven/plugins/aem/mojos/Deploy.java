@@ -13,7 +13,6 @@
 package com.unic.maven.plugins.aem.mojos;
 
 import com.unic.maven.plugins.aem.core.DeployCommand;
-import org.apache.http.annotation.ThreadSafe;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -42,8 +41,7 @@ import static java.util.Collections.addAll;
  *
  * @author Olaf Otto
  */
-@Mojo(name = "deploy")
-@ThreadSafe
+@Mojo(name = "deploy", threadSafe = true, requiresProject = false)
 public class Deploy extends AemMojo {
 
     @Component

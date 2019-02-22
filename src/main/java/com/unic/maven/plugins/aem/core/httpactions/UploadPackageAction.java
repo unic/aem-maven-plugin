@@ -12,14 +12,14 @@
  */
 package com.unic.maven.plugins.aem.core.httpactions;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import org.jetbrains.annotations.NotNull;
+import unirest.HttpResponse;
+import unirest.JsonNode;
+import unirest.Unirest;
+import unirest.UnirestException;
 
 import java.io.File;
 
-import static com.mashape.unirest.http.Unirest.post;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class UploadPackageAction extends RetryableHttpAction<JsonNode, String> {
@@ -73,7 +73,7 @@ public class UploadPackageAction extends RetryableHttpAction<JsonNode, String> {
                     + getTotalBackoffTimeInSeconds() + " seconds.");
         }
 
-        return post(getConfiguration().getServerUri() + "/crx/packmgr/service/.json/?cmd=upload")
+        return Unirest.post(getConfiguration().getServerUri() + "/crx/packmgr/service/.json/?cmd=upload")
                 .field("force", true)
                 .field("package", file)
                 .basicAuth("admin", getConfiguration().getPassword()).asJson();

@@ -15,7 +15,6 @@ package com.unic.maven.plugins.aem.mojos;
 import com.unic.maven.plugins.aem.util.AwaitableProcess.ExecutionResult;
 import com.unic.maven.plugins.aem.util.Expectation;
 import com.unic.maven.plugins.aem.util.FileUtil;
-import org.apache.http.annotation.ThreadSafe;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -51,8 +50,7 @@ import static org.codehaus.plexus.util.StringUtils.join;
  *
  * @author Olaf Otto
  */
-@Mojo(name = "start")
-@ThreadSafe
+@Mojo(name = "start", threadSafe = true, requiresProject = false)
 public class Start extends AwaitInitialization {
     private final ExecutorService executorService = newCachedThreadPool();
 

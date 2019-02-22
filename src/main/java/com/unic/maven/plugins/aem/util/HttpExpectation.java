@@ -12,18 +12,15 @@
  */
 package com.unic.maven.plugins.aem.util;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.exceptions.UnirestException;
-import com.mashape.unirest.request.HttpRequest;
 import org.jetbrains.annotations.NotNull;
+import unirest.HttpRequest;
+import unirest.HttpResponse;
+import unirest.Unirest;
+import unirest.UnirestException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static com.mashape.unirest.http.Unirest.get;
-import static com.mashape.unirest.http.Unirest.post;
-import static com.mashape.unirest.http.Unirest.setTimeouts;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.codehaus.plexus.util.StringUtils.isEmpty;
 
 /**
@@ -73,12 +70,12 @@ public class HttpExpectation extends Expectation {
 
     @Override
     protected Outcome fulfill() {
-        setTimeouts(SECONDS.toMillis(2), SECONDS.toMillis(2));
-        HttpRequest request = method == HttpMethod.GET ? get(this.url.toExternalForm()) : post(this.url.toExternalForm());
+        HttpRequest request = method == HttpMethod.GET ? Unirest.get(this.url.toExternalForm()) : Unirest.post(this.url.toExternalForm());
         try {
             if (!isEmpty(this.user)) {
                 request = request.basicAuth(this.user, this.password);
             }
+            @SuppressWarnings("unchecked")
             HttpResponse<String> response = request.asString();
             if (response.getStatus() == this.expectedStatusCode) {
                 if (this.expectedResponseContent == null) {

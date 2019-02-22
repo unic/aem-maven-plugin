@@ -12,11 +12,11 @@
  */
 package com.unic.maven.plugins.aem.core.httpactions;
 
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import org.jetbrains.annotations.NotNull;
+import unirest.HttpResponse;
+import unirest.Unirest;
+import unirest.UnirestException;
 
-import static com.mashape.unirest.http.Unirest.post;
 
 /**
  * Pauses the JCR installer by creating the "do not install signal" content (AEM 6+)
@@ -69,7 +69,7 @@ public class PauseJcrInstallerAction extends RetryableHttpAction<String, String>
     @NotNull
     @Override
     protected HttpResponse<String> perform() throws UnirestException {
-        return post(getConfiguration().getServerUri() + "/system/sling")
+        return Unirest.post(getConfiguration().getServerUri() + "/system/sling")
             .field(":operation", "import")
             .field(":contentType", "json")
             .field(":content", "{\n" +
