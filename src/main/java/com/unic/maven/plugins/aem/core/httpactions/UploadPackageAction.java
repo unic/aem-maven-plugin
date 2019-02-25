@@ -73,9 +73,18 @@ public class UploadPackageAction extends RetryableHttpAction<JsonNode, String> {
                     + getTotalBackoffTimeInSeconds() + " seconds.");
         }
 
-        return Unirest.post(getConfiguration().getServerUri() + "/crx/packmgr/service/.json/?cmd=upload")
+        HttpResponse<JsonNode> response = Unirest.post(getConfiguration().getServerUri() + "/crx/packmgr/service/.json/?cmd=upload")
                 .field("force", true)
                 .field("package", file)
                 .basicAuth("admin", getConfiguration().getPassword()).asJson();
+
+        if (response.getParsingError().isPresent()) {
+            // Unirest does not throw an exception but returns a null JSON body when the JSON cannot be parsed.
+            // We favor an exception.
+            if (response.getParsingError().isPresent()) {
+                throw new UnirestException(new RuntimeException("Unable to parse JSON response from " + getConfiguration().getServerUri() + "/crx/packmgr/service/.json/?cmd=upload", response.getParsingError().get()));
+            }
+        }
+        return response;
     }
 }

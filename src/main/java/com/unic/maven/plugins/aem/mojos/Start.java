@@ -57,13 +57,13 @@ public class Start extends AwaitInitialization {
     /**
      * The run modes for this instance, in addition to {@link #getAemType()}.
      */
-    @Parameter
+    @Parameter(property = "run.modes")
     private String[] runModes = new String[]{};
 
     /**
      * Use this amount of heap. Example: 2048M.
      */
-    @Parameter(defaultValue = "2048M")
+    @Parameter(defaultValue = "2048M", property = "heap.size")
     private String heapSize;
 
     /**
@@ -79,7 +79,7 @@ public class Start extends AwaitInitialization {
      * &lt;/configuration>
      * </pre>
      */
-    @Parameter
+    @Parameter(property = "startup.vmOptions")
     private String[] startupVmOptions = new String[]{};
 
     /**

@@ -69,7 +69,7 @@ public class AwaitInitialization extends AemMojo {
      * Ignores the defined bundles during initialization check by given regex checks.
      * The regex is checked against the bundle's symbolic name.
      */
-    @Parameter
+    @Parameter(property = "ignore.bundlesRegex")
     private String[] ignoreBundlesRegex = new String[]{};
 
     @Override
@@ -228,8 +228,14 @@ public class AwaitInitialization extends AemMojo {
     }
 
     private HttpResponse<JsonNode> getJson(String path) throws UnirestException {
-        return Unirest.get(getAemBaseUrl() + path)
+        HttpResponse<JsonNode> response = Unirest.get(getAemBaseUrl() + path)
                 .basicAuth("admin", getAdminPassword())
                 .asJson();
+        // Unirest does not throw an exception but returns a null JSON body when the JSON cannot be parsed.
+        // We favor an exception.
+        if (response.getParsingError().isPresent()) {
+            throw new UnirestException(new RuntimeException("Unable to parse JSON response from " + getAemBaseUrl() + path, response.getParsingError().get()));
+        }
+        return response;
     }
 }

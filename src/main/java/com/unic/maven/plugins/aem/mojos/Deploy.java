@@ -58,31 +58,31 @@ public class Deploy extends AemMojo {
      * <code>&lt;groupId&gt;:&lt;artifactId&gt;[:&lt;extension&gt;[:&lt;classifier&gt;]]:&lt;version&gt;</code>
      */
     @SuppressWarnings("MismatchedReadAndWriteOfArray")
-    @Parameter
+    @Parameter(property = "deploy.artifacts")
     private String[] deployArtifacts = new String[] {};
 
     /**
      * The packages to deploy directly from the file system.
      */
-    @Parameter
+    @Parameter(property = "deploy.files")
     private File[] deployFiles = new File[] {};
 
     /**
      * The number of nodes after which an intermediate save is triggered during deployment.
      */
-    @Parameter(defaultValue = "100000")
+    @Parameter(defaultValue = "100000", property = "deploy.saveThreshold")
     private int deploySaveThreshold = 100000;
 
     /**
      * Whether to extract subpackages.
      */
-    @Parameter(defaultValue = "true")
+    @Parameter(defaultValue = "true", property = "deploy.subPackages")
     private boolean deploySubpackages = true;
 
     /**
      * The number of times an file upload may be re-tried
      */
-    @Parameter(defaultValue = "3")
+    @Parameter(defaultValue = "3", property = "deploy.retries")
     private int deployRetries = 3;
 
     /**
@@ -90,7 +90,7 @@ public class Deploy extends AemMojo {
      * This feature is only available for AEM 6.1+.
      * See also: https://issues.apache.org/jira/browse/SLING-3747
      */
-    @Parameter
+    @Parameter(property = "pause.jcrInstaller")
     private boolean pauseJcrInstaller = false;
 
     @Override

@@ -54,13 +54,13 @@ public class ValidateContent extends AbstractMojo {
      * validate-xml mojo.
      */
     @SuppressWarnings("MismatchedReadAndWriteOfArray")
-    @Parameter
+    @Parameter(property = "content.directories")
     private File[] contentDirectories = new File[]{};
 
     /**
      * The standard directly containing content XML files to be validated.
      */
-    @Parameter(defaultValue = "${project.basedir}/src/main/content")
+    @Parameter(defaultValue = "${project.basedir}/src/main/content", property = "content.directory")
     private File contentDirectory = null;
 
     /**

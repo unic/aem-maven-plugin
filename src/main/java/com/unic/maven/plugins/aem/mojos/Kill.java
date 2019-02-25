@@ -56,7 +56,7 @@ public class Kill extends AemMojo {
      * After terminating an AEM process, wait for this amount of seconds to make sure that process
      * resources - such as files or network ports - are freed.
      */
-    @Parameter(defaultValue = "5")
+    @Parameter(defaultValue = "5", property = "kill.gracePeriod")
     private int killGracePeriod;
 
     @Override

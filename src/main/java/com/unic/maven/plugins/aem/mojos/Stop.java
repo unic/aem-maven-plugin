@@ -49,7 +49,7 @@ public class Stop extends Kill {
     /**
      * Wait up to this number of minutes for AEM to stop
      */
-    @Parameter(defaultValue = "2")
+    @Parameter(defaultValue = "2", property = "shutdown.waitTime")
     private int shutdownWaitTime = 2;
 
     @Override
