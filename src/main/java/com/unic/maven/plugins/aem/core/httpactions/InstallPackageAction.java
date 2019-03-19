@@ -30,7 +30,7 @@ import static java.util.regex.Pattern.compile;
  * the success of the installation via the log data provided in the returned HTML.
  */
 public class InstallPackageAction extends RetryableHttpAction<String, String> {
-    private final Pattern errorMessagePattern = compile("<b>E</b>&nbsp;([^ ]+) \\((.+)\\)</span>");
+    private final Pattern errorMessagePattern = compile("<b>E<[\\\\]?/b>&nbsp;(?<path>[^ ]+) \\((?<errorMessage>(?s).*?)\\)<[\\\\]?/span>");
     private final String packagePath;
     private final boolean deploySubpackages;
     private final File file;
@@ -76,15 +76,23 @@ public class InstallPackageAction extends RetryableHttpAction<String, String> {
         StringBuilder failureMessage = new StringBuilder(1024);
 
         failureMessage.append("Package manager response: ")
-                .append(response.getStatus()).append("-")
-                .append(response.getStatusText())
-                .append(": \n");
+                .append(response.getStatus()).append(" ").append(response.getStatusText())
+                .append(": \n")
+                .append("Errors reported in package manager response:\n");
 
+        boolean found = false;
         while (m.find()) {
-            failureMessage.append(m.group(1)).append(": ").append(m.group(2)).append('\n');
+            failureMessage.append(m.group("path")).append(": ")
+                    .append(
+                            m.group("errorMessage")
+                                    .replaceAll("[\n\r]]", " --- "))
+                    .append("\n\n");
+            found = true;
         }
 
-        failureMessage.append("\n\n").append(response.getBody());
+        if (!found) {
+            failureMessage.append("None - full package manager response:\n\n").append(response.getBody());
+        }
 
         return failureMessage.toString();
     }
