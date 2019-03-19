@@ -70,8 +70,8 @@ public class Deploy extends AemMojo {
     /**
      * The number of nodes after which an intermediate save is triggered during deployment.
      */
-    @Parameter(defaultValue = "100000", property = "deploy.saveThreshold")
-    private int deploySaveThreshold = 100000;
+    @Parameter(defaultValue = "4096", property = "deploy.saveThreshold")
+    private int deploySaveThreshold = 4096;
 
     /**
      * Whether to extract subpackages.
