@@ -37,7 +37,7 @@ import java.util.List;
 import static java.util.Collections.addAll;
 
 /**
- * Deploys a CRX package from a local files (e.g. residing within the build directory) or from the configured artifacts.
+ * Deploys a CRX package from either local files (e.g. residing within the build directory) or from configured maven artifacts.
  *
  * @author Olaf Otto
  */
