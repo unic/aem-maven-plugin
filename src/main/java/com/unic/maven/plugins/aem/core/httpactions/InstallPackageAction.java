@@ -54,7 +54,7 @@ public class InstallPackageAction extends RetryableHttpAction<String, String> {
     @NotNull
     @Override
     protected String startMessage() {
-        return "Installing " + file + (deploySubpackages ? " and its subpackages, if any..." : "...");
+        return "Installing " + file + (deploySubpackages ? " and its subpackages, if any, on " + getConfiguration().getServerUri() + "..." : "...");
     }
 
     @NotNull

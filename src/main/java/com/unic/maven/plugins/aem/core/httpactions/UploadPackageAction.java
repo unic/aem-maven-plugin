@@ -50,7 +50,7 @@ public class UploadPackageAction extends RetryableHttpAction<JsonNode, String> {
     @NotNull
     @Override
     protected String startMessage() {
-        return "Uploading " + file + "...";
+        return "Uploading " + file  + " to " + getConfiguration().getServerUri() + "...";
     }
 
     @NotNull
