@@ -1,6 +1,6 @@
 language: java
 sudo: false # faster builds
 
-jdk: oraclejdk8
+jdk: openjdk8
 
 script: mvn -B -e package
