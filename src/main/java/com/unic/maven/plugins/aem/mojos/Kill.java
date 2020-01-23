@@ -37,6 +37,7 @@ import static com.unic.maven.plugins.aem.util.ProcessStreamReader.followProcessI
 import static java.io.File.separator;
 import static java.lang.Integer.parseInt;
 import static java.lang.Thread.sleep;
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.regex.Pattern.compile;
@@ -49,7 +50,9 @@ import static java.util.regex.Pattern.compile;
  */
 @Mojo(name = "kill", threadSafe = true, requiresProject = false)
 public class Kill extends AemMojo {
-    private static final Pattern AEM_PID = compile("([0-9]+) ((cq.?|aem.?)-.*\\.jar .*)");
+    private static final Pattern AEM_PID = compile("[\\s]*(?<pid>[0-9]+)[\\s]+.*(?<process>(cq.?|aem.?)-.*\\.jar .*)");
+    private static final Pattern HTTP_PORT_ARGUMENT = compile("(-quickstart\\.server\\.port|-p|-port)[\\s]+(?<port>[0-9]+)");
+    private static final Pattern DEBUG_PORT_ARGUMENT = compile("address[\\s]*=[\\s]*(?<port>[0-9]+)");
     private final ExecutorService executorService = newCachedThreadPool();
 
     /**
@@ -119,40 +122,75 @@ public class Kill extends AemMojo {
      */
     @NotNull
     List<Integer> getPidsOfConflictingAemInstances() {
-        List<Integer> pids = new ArrayList<>();
+        // -mlv: Include executed file names and arguments to both the java program and the JVM (debug port)
+        String jpsResult = execute(getJpsExecutable(), "-mlv");
+
+        // JPS may not yield anything erroneously, see e.g. https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8193710
+        if (!isBlank(jpsResult)) {
+            return findPidsOfConflictingAemInstances(jpsResult);
+        }
+
+        // The known JPS are likely to only affect non-windows systems.
+        if (isWindows()) {
+            return emptyList();
+        }
+
+        // At this point we may be in a docker container and unable to JPS, so we attempt to find conflicting instances
+        // by checking for all processes to make sure we did not miss a process.
+        // x: List processes of the current user, include those not running from tty.
+        String psResult = execute("ps", "x");
+        if (!isBlank(psResult)) {
+            return findPidsOfConflictingAemInstances(psResult);
+        }
+        return emptyList();
+    }
+
+    private String execute(String... command) {
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder()
-                    .command(getJpsExecutable(),
-                            "-mlv"
-                            // long format: Include executed file names and arguments to both the java programm and the JVM (debug port)
-                    );
+            ProcessBuilder processBuilder = new ProcessBuilder().command(command);
             logCommands(processBuilder);
-            Process jps = processBuilder.start();
+            Process process = processBuilder.start();
             StringBuilder commandOutput = new StringBuilder(2048);
 
-            // Log all stdout and stderr output of the quickstart execution. This is crucial to understand startup issues.
-            this.executorService.execute(followProcessErrorStream(jps, getLog(), line -> getLog().error(line)));
-            Future<?> readProcessOutput = this.executorService.submit(followProcessInputStream(jps, getLog(), l -> commandOutput.append(l).append('\n')));
-
-            ExecutionResult jpsExecutionResult = awaitable(jps).awaitTermination(10, SECONDS);
-
-            if (jpsExecutionResult.isTerminated()) {
+            this.executorService.execute(followProcessErrorStream(process, getLog(), line -> getLog().error(line)));
+            Future<?> readProcessOutput = this.executorService.submit(followProcessInputStream(process, getLog(), l -> commandOutput.append(l).append('\n')));
+            ExecutionResult executionResult = awaitable(process).awaitTermination(10, SECONDS);
+            if (executionResult.isTerminated()) {
                 readProcessOutput.get(5, SECONDS);
-                String processes = commandOutput.toString();
-                Matcher matcher = AEM_PID.matcher(processes);
-
-                while (matcher.find()) {
-                    String processAndArguments = matcher.group(2);
-                    if (processAndArguments.contains(Integer.toString(getHttpPort()))
-                            || processAndArguments.contains(Integer.toString(getDebugPort()))) {
-                        pids.add(parseInt(matcher.group(1)));
-                    }
-                }
+                return commandOutput.toString();
             } else {
-                getLog().warn("JPS process didn't complete within timeout. AEM instances could still be running.");
+                getLog().warn(command[0] + " didn't complete within timeout. AEM instances could still be running.");
             }
         } catch (Exception e) {
-            getLog().warn("Unable to determine the AEM processes PID using JPS.", e);
+            getLog().warn("Unable to execute " + command[0], e);
+        }
+        return null;
+    }
+
+    /**
+     * Extract the PIDs of conflicting processes. This matching uses a fuzzy regular expression since the format of the process lists somewhat depend on the underlying
+     * platform and tool used.
+     */
+    @NotNull
+    private List<Integer> findPidsOfConflictingAemInstances(String processes) {
+        if (getLog().isDebugEnabled()) {
+            getLog().debug("Looking for AEM processes with conflicting HTTP port " + getHttpPort() + " or debug port " + getDebugPort() + " in\n\r" + processes);
+        }
+        List<Integer> pids = new ArrayList<>();
+        Matcher aemProcessLine = AEM_PID.matcher(processes);
+        while (aemProcessLine.find()) {
+            String processAndArguments = aemProcessLine.group("process");
+
+            Matcher httpPortArg = HTTP_PORT_ARGUMENT.matcher(processAndArguments);
+            if (httpPortArg.find() && httpPortArg.group("port").equals(Integer.toString(getHttpPort()))) {
+                pids.add(parseInt(aemProcessLine.group("pid")));
+                continue;
+            }
+
+            Matcher debugPortArg = DEBUG_PORT_ARGUMENT.matcher(processAndArguments);
+            if (debugPortArg.find() && debugPortArg.group("port").equals(Integer.toString(getDebugPort()))) {
+                pids.add(parseInt(aemProcessLine.group("pid")));
+            }
         }
         return pids;
     }
@@ -172,5 +210,9 @@ public class Kill extends AemMojo {
                 return getPidsOfConflictingAemInstances().isEmpty() ? FULFILLED : RETRY;
             }
         };
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
     }
 }
