@@ -29,6 +29,7 @@ import java.io.IOException;
 import static com.unic.maven.plugins.aem.util.AwaitableProcess.awaitable;
 import static com.unic.maven.plugins.aem.util.ExceptionUtil.getRootCause;
 import static java.lang.System.currentTimeMillis;
+import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -52,6 +53,13 @@ public class Stop extends Kill {
     @Parameter(defaultValue = "2", property = "shutdown.waitTime")
     private int shutdownWaitTime = 2;
 
+    /**
+     * After terminating an AEM process, wait for this amount of seconds to make sure that process
+     * resources - such as files or network ports - are freed.
+     */
+    @Parameter(defaultValue = "5", property = "shutdown.gracePeriod")
+    private int shutdownGracePeriod;
+
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {
         final long startTime = currentTimeMillis();
@@ -61,12 +69,17 @@ public class Stop extends Kill {
             getLog().info("AEM is not installed.");
             killConflictingAemInstances();
         } else {
-            boolean shutdownComplete = useControlPort ? shutdownAemUsingControlPort() : shutdownAem();
+            boolean shutdownComplete = isUseControlPort() ? shutdownAemUsingControlPort() : shutdownAem();
             if (!shutdownComplete) {
                 shutdownComplete = killConflictingAemInstances();
             }
 
             if (shutdownComplete) {
+                try {
+                    sleep(SECONDS.toMillis(shutdownGracePeriod));
+                } catch (InterruptedException e) {
+                    // continue.
+                }
                 getLog().info("AEM shutdown completed after " + MILLISECONDS.toSeconds(currentTimeMillis() - startTime) + " seconds.");
             } else {
                 throw new MojoExecutionException("Unable to stop AEM - neither graceful nor forceful shutdown succeeded.");

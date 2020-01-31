@@ -90,7 +90,8 @@ public abstract class AemMojo extends AbstractMojo {
      * Felix console and clicking on the stop button is used.
      */
     @Parameter(defaultValue = "true", property = "use.controlport")
-    boolean useControlPort;
+    private boolean useControlPort;
+
 
     /**
      * @return the AEM directory, i.e. target/aem/[aemType], e.g. target/aem/author
@@ -105,6 +106,11 @@ public abstract class AemMojo extends AbstractMojo {
                     "before this mojo can execute.");
         }
         return aemDirectory;
+    }
+
+
+    boolean isUseControlPort() {
+        return this.useControlPort;
     }
 
     boolean isAemInstalled() {

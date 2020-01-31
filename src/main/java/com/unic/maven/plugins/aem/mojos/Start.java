@@ -196,7 +196,7 @@ public class Start extends AwaitInitialization {
                 "-verbose",
                 "-r", join(runModes.iterator(), ","),
                 "-port", Integer.toString(getHttpPort())));
-        if (useControlPort) {
+        if (isUseControlPort()) {
             commands.add("-use-control-port");
         }
 
