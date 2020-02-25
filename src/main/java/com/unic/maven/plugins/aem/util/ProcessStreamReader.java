@@ -17,15 +17,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.channels.ReadableByteChannel;
-import java.nio.charset.CharsetDecoder;
+import java.io.InputStreamReader;
 import java.util.function.Consumer;
 
-import static java.nio.ByteBuffer.allocate;
-import static java.nio.channels.Channels.newChannel;
-import static java.nio.charset.Charset.defaultCharset;
+import static java.lang.Thread.sleep;
 
 /**
  * Reads the stdout / stderr of a given process in a non-blocking fashion, thus allowing
@@ -58,46 +53,48 @@ public class ProcessStreamReader implements Runnable {
 
     @Override
     public void run() {
-        try (ReadableByteChannel readableByteChannel = newChannel(in)) {
-            final ByteBuffer buffer = allocate(1024);
-            final CharsetDecoder charsetDecoder = defaultCharset().newDecoder();
-
+        try {
+            final InputStreamReader reader = new InputStreamReader(in);
             StringBuilder lineBuilder = new StringBuilder(1024);
-            int read;
-            while ((read = readableByteChannel.read(buffer)) != -1) {
-                if (read == 0 && process.isAlive()) {
-                    Thread.sleep(500);
+            char[] buffer = new char[1024];
+            int available;
+
+            while (true) {
+                if (in.available() == 0 && process.isAlive()) {
+                    sleep(500);
                     continue;
                 }
-                buffer.flip();
-                CharBuffer charBuffer = charsetDecoder.decode(buffer);
-                while (charBuffer.hasRemaining()) {
-                    char c = charBuffer.get();
 
-                    if (c == '\r') {
+                available = reader.read(buffer);
+
+                if (available == -1) {
+                    // EOF
+                    break;
+                }
+
+                for (int i = 0; i < available; ++i) {
+                    if (buffer[i] == '\r') {
                         // Skip over windows \r
                         continue;
                     }
-                    if (c == '\n') {
+                    if (buffer[i] == '\n') {
                         // Send the line to the consumer, omit the newline character
                         consumer.accept(lineBuilder.toString());
                         lineBuilder = new StringBuilder(1024);
                         continue;
                     }
-                    lineBuilder.append(c);
-                }
-                buffer.clear();
-                if (!process.isAlive()) {
-                    break;
+
+                    lineBuilder.append(buffer[i]);
                 }
             }
+
             if (lineBuilder.length() != 0) {
                 consumer.accept(lineBuilder.toString());
             }
         } catch (IOException e) {
             log.error("Unable to read from the process stream", e);
         } catch (InterruptedException e) {
-            log.debug("Interrupted while waiting for the stream, stopping.", e);
+            log.debug("Interrupted while reading from " + this.process);
         } finally {
             log.debug("Stopped reading from " + this.process);
         }
