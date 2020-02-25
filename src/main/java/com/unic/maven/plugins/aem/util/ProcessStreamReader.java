@@ -17,8 +17,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.charset.CharsetDecoder;
 import java.util.function.Consumer;
+
+import static java.nio.ByteBuffer.allocate;
+import static java.nio.channels.Channels.newChannel;
+import static java.nio.charset.Charset.defaultCharset;
 
 /**
  * Reads the stdout / stderr of a given process in a non-blocking fashion, thus allowing
@@ -51,25 +58,37 @@ public class ProcessStreamReader implements Runnable {
 
     @Override
     public void run() {
-        try {
-            final InputStreamReader reader = new InputStreamReader(in);
+        try (ReadableByteChannel readableByteChannel = newChannel(in)) {
+            final ByteBuffer buffer = allocate(1024);
+            final CharsetDecoder charsetDecoder = defaultCharset().newDecoder();
+
             StringBuilder lineBuilder = new StringBuilder(1024);
-            char[] buffer = new char[1024];
-            int available;
-            while (process.isAlive() && (available = reader.read(buffer)) != -1) {
-                for (int i = 0; i < available; ++i) {
-                    if (buffer[i] == '\r') {
+            int read;
+            while ((read = readableByteChannel.read(buffer)) != -1) {
+                if (read == 0 && process.isAlive()) {
+                    Thread.sleep(500);
+                    continue;
+                }
+                buffer.flip();
+                CharBuffer charBuffer = charsetDecoder.decode(buffer);
+                while (charBuffer.hasRemaining()) {
+                    char c = charBuffer.get();
+
+                    if (c == '\r') {
                         // Skip over windows \r
                         continue;
                     }
-                    if (buffer[i] == '\n') {
+                    if (c == '\n') {
                         // Send the line to the consumer, omit the newline character
                         consumer.accept(lineBuilder.toString());
                         lineBuilder = new StringBuilder(1024);
                         continue;
                     }
-
-                    lineBuilder.append(buffer[i]);
+                    lineBuilder.append(c);
+                }
+                buffer.clear();
+                if (!process.isAlive()) {
+                    break;
                 }
             }
             if (lineBuilder.length() != 0) {
@@ -77,6 +96,8 @@ public class ProcessStreamReader implements Runnable {
             }
         } catch (IOException e) {
             log.error("Unable to read from the process stream", e);
+        } catch (InterruptedException e) {
+            log.debug("Interrupted while waiting for the stream, stopping.", e);
         } finally {
             log.debug("Stopped reading from " + this.process);
         }

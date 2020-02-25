@@ -32,6 +32,7 @@ import static com.unic.maven.plugins.aem.util.AwaitableProcess.awaitable;
 import static com.unic.maven.plugins.aem.util.HttpExpectation.expect;
 import static com.unic.maven.plugins.aem.util.ProcessStreamReader.followProcessErrorStream;
 import static com.unic.maven.plugins.aem.util.ProcessStreamReader.followProcessInputStream;
+import static java.lang.Runtime.getRuntime;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
 import static java.util.Arrays.asList;
@@ -88,12 +89,25 @@ public class Start extends AwaitInitialization {
     @Parameter(defaultValue = "2", property = "startup.waitTime")
     private int startupWaitTime = 2;
 
+    /**
+     * Whether to keep following stderr and stdout of the started AEM instance
+     * beyond the execution of the startup mojo. If true, adds a shutdown hook to the JVM
+     * that will stop stderr and stdout monitoring when the JVM exits.
+     */
+    @Parameter(defaultValue = "true", property = "startup.keepFollowingStdErrAndOut")
+    private boolean followStdOutAndErrBeyondMojoExecution = true;
+
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {
+        if (this.followStdOutAndErrBeyondMojoExecution) {
+            getRuntime().addShutdownHook(new Thread(executorService::shutdownNow));
+        }
         try {
             doExecute();
         } finally {
-            executorService.shutdownNow();
+            if (!this.followStdOutAndErrBeyondMojoExecution) {
+                executorService.shutdownNow();
+            }
         }
     }
 
