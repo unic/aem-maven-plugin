@@ -5,7 +5,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
-import static com.sun.javafx.animation.TickCalculation.toMillis;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.MINUTES;
@@ -40,7 +39,7 @@ public class EnsureStableFor extends AwaitInitialization {
                 throw new MojoFailureException("Exceeded the initialization wait time of " + getInitializationWaitTime() + " minutes when waiting for AEM to be stable for " + expectedStableTimeInSeconds + " seconds.");
             }
 
-            if (currentTimeMillis() - stableSince >= toMillis(expectedStableTimeInSeconds)) {
+            if (currentTimeMillis() - stableSince >= SECONDS.toMillis(expectedStableTimeInSeconds)) {
                 getLog().info("AEM has been stable for " + expectedStableTimeInSeconds + " seconds, continuing.");
                 break;
             }
