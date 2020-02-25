@@ -152,7 +152,7 @@ public class Kill extends AemMojo {
             Process process = processBuilder.start();
             StringBuilder commandOutput = new StringBuilder(2048);
 
-            this.executorService.execute(followProcessErrorStream(process, getLog(), line -> getLog().error(line)));
+            this.executorService.execute(followProcessErrorStream(process, getLog(), line -> getLog().error("<stderr> " + line)));
             Future<?> readProcessOutput = this.executorService.submit(followProcessInputStream(process, getLog(), l -> commandOutput.append(l).append('\n')));
             ExecutionResult executionResult = awaitable(process).awaitTermination(10, SECONDS);
             if (executionResult.isTerminated()) {
