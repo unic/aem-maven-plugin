@@ -129,7 +129,7 @@ public class AwaitInitialization extends AemMojo {
         throw new MojoFailureException(message.toString());
     }
 
-    private Expectation aemIsInitialized() {
+    Expectation aemIsInitialized() {
         return new Expectation() {
             private Exception lastFailure;
             @Override
@@ -237,5 +237,9 @@ public class AwaitInitialization extends AemMojo {
             throw new UnirestException(new RuntimeException("Unable to parse JSON response from " + getAemBaseUrl() + path, response.getParsingError().get()));
         }
         return response;
+    }
+
+    int getInitializationWaitTime() {
+        return initializationWaitTime;
     }
 }
