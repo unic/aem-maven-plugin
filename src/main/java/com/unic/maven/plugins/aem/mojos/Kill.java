@@ -40,6 +40,7 @@ import static java.lang.Thread.sleep;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.regex.Pattern.MULTILINE;
 import static java.util.regex.Pattern.compile;
 
 /**
@@ -50,7 +51,7 @@ import static java.util.regex.Pattern.compile;
  */
 @Mojo(name = "kill", threadSafe = true, requiresProject = false)
 public class Kill extends AemMojo {
-    private static final Pattern AEM_PID = compile("[\\s]*(?<pid>[0-9]+)[\\s]+.*(?<process>(cq.?|aem.?)-.*\\.jar .*)");
+    private static final Pattern AEM_PID = compile("^[\\s]*(?<pid>[0-9]+)[\\s]+.*(?<process>(cq.?|aem.?)-.*\\.jar .*)$", MULTILINE);
     private static final Pattern HTTP_PORT_ARGUMENT = compile("(-quickstart\\.server\\.port|-p|-port)[\\s]+(?<port>[0-9]+)");
     private static final Pattern DEBUG_PORT_ARGUMENT = compile("address[\\s]*=[\\s]*(?<port>[0-9]+)");
     private final ExecutorService executorService = newCachedThreadPool();
