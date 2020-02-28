@@ -31,7 +31,7 @@ import static java.util.concurrent.Executors.newCachedThreadPool;
  * @author Olaf Otto
  */
 @Mojo(name = "followLogs", threadSafe = true, requiresProject = false)
-public class FollowLogfiles extends AwaitInitialization {
+public class FollowLogfiles extends AemMojo {
     private final ExecutorService executorService = newCachedThreadPool();
 
     /**
