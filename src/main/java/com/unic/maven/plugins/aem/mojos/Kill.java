@@ -51,7 +51,10 @@ import static java.util.regex.Pattern.compile;
  */
 @Mojo(name = "kill", threadSafe = true, requiresProject = false)
 public class Kill extends AemMojo {
-    private static final Pattern AEM_PID = compile("^[\\s]*(?<pid>[0-9]+)[\\s]+.*(?<process>(cq.?|aem.?)-.*\\.jar .*)$", MULTILINE);
+    // A process, it's command line and PID are returned by JPS and PS in this format.
+    private static final Pattern JPS_LIKE_AEM_PID = compile("^[\\s]*(?<pid>[0-9]+)[\\s]+.*(?<process>(cq.?|aem.?)-.*\\.jar .*)$", MULTILINE);
+    // The WMIC command we are using returns this format.
+    private static final Pattern WMIC_AEM_PID = compile("^.*(?<process>(cq.?|aem.?)-.*\\.jar .*),(?<pid>[0-9]+)$", MULTILINE);
     private static final Pattern HTTP_PORT_ARGUMENT = compile("(-quickstart\\.server\\.port|-p|-port)[\\s]+(?<port>[0-9]+)");
     private static final Pattern DEBUG_PORT_ARGUMENT = compile("address[\\s]*=[\\s]*(?<port>[0-9]+)");
     private final ExecutorService executorService = newCachedThreadPool();
@@ -66,8 +69,7 @@ public class Kill extends AemMojo {
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {
         try {
-            killConflictingAemInstances();
-            if (aemProcessTerminated().within(5, SECONDS)) {
+            if (killConflictingAemInstances() || aemProcessTerminated().within(5, SECONDS)) {
                 getLog().info("All conflicting AEM processes were terminated");
             } else {
                 throw new MojoExecutionException("Unable to terminate conflicting AEM instances:" +
@@ -123,25 +125,29 @@ public class Kill extends AemMojo {
      */
     @NotNull
     List<Integer> getPidsOfConflictingAemInstances() {
-        // -mlv: Include executed file names and arguments to both the java program and the JVM (debug port)
-        String jpsResult = execute(getJpsExecutable(), "-mlv");
+        String jpsExecutablePath = getJpsExecutablePath();
+        if (new File(jpsExecutablePath).exists()) {
+            // -mlv: Include executed file names and arguments to both the java program and the JVM (debug port)
+            String jpsResult = execute(jpsExecutablePath, "-mlv");
 
-        // JPS may not yield anything erroneously, see e.g. https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8193710
-        if (!isBlank(jpsResult)) {
-            return findPidsOfConflictingAemInstances(jpsResult);
+            // JPS may not yield anything erroneously, see e.g. https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8193710
+            if (!isBlank(jpsResult)) {
+                return findPidsOfConflictingAemInstances(jpsResult, JPS_LIKE_AEM_PID);
+            }
         }
 
-        // The known JPS are likely to only affect non-windows systems.
+        // Here, JPS is not available or provides no data. Try and use system-specific tooling.
         if (isWindows()) {
-            return emptyList();
+            String wmicResult = execute("wmic", "PROCESS", "WHERE", "\"name like 'java%' and commandline like '%-jar %'\"", "GET", "ProcessID,CommandLine", "/Format:csv");
+            return findPidsOfConflictingAemInstances(wmicResult, WMIC_AEM_PID);
         }
 
-        // At this point we may be in a docker container and unable to JPS, so we attempt to find conflicting instances
+        // At this point we may be on any *Nix distro or in a docker container and unable to JPS, so we attempt to find conflicting instances
         // by checking for all processes to make sure we did not miss a process.
         // x: List processes of the current user, include those not running from tty.
         String psResult = execute("ps", "x");
         if (!isBlank(psResult)) {
-            return findPidsOfConflictingAemInstances(psResult);
+            return findPidsOfConflictingAemInstances(psResult, JPS_LIKE_AEM_PID);
         }
         return emptyList();
     }
@@ -173,12 +179,12 @@ public class Kill extends AemMojo {
      * platform and tool used.
      */
     @NotNull
-    private List<Integer> findPidsOfConflictingAemInstances(String processes) {
+    private List<Integer> findPidsOfConflictingAemInstances(String processes, Pattern pidPattern) {
         if (getLog().isDebugEnabled()) {
             getLog().debug("Looking for AEM processes with conflicting HTTP port " + getHttpPort() + " or debug port " + getDebugPort() + " in\n\r" + processes);
         }
         List<Integer> pids = new ArrayList<>();
-        Matcher aemProcessLine = AEM_PID.matcher(processes);
+        Matcher aemProcessLine = pidPattern.matcher(processes);
         while (aemProcessLine.find()) {
             String processAndArguments = aemProcessLine.group("process");
 
@@ -197,10 +203,10 @@ public class Kill extends AemMojo {
     }
 
     @NotNull
-    private String getJpsExecutable() {
+    private String getJpsExecutablePath() {
         File jreHome = new File(getJavaHome());
         File jdkRoot = jreHome.getParentFile();
-        return jdkRoot.getPath() + separator + "bin" + separator + "jps";
+        return jdkRoot.getPath() + separator + "bin" + separator + "jps" + (isWindows() ? ".exe" : "");
     }
 
     @NotNull
