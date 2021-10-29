@@ -35,7 +35,7 @@ public class FollowLogfiles extends AemMojo {
     private final ExecutorService executorService = newCachedThreadPool();
 
     /**
-     * The logfiles to follow, relative to the AEM installation direectory, e.g. <code>logs/error.log</code>
+     * The logfiles to follow, relative to the AEM installation directory, e.g. <code>logs/error.log</code>
      */
     @Parameter(property = "follow.logfiles", defaultValue = "logs/error.log")
     private String[] logfileNames = new String[]{};
