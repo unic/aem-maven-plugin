@@ -155,7 +155,7 @@ public class Start extends AwaitInitialization {
             // Log all stdout and stderr output of the quickstart execution. This is crucial to understand startup issues.
             // log stderr to info as the quickstart jar is using it for info output.
             this.executorService.execute(followProcessErrorStream(process, getLog(), line -> getLog().error("<stderr> " + line)));
-            this.executorService.execute(followProcessInputStream(process, getLog(), line -> getLog().info("  <stdin> " + line)));
+            this.executorService.execute(followProcessInputStream(process, getLog(), line -> getLog().info(" <stdout> " + line)));
 
             // Grace period: If the AEM process does not terminate within the first five seconds
             // after it was started, we assume the startup was successfully initiated and that it is
