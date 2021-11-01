@@ -8,7 +8,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="author" content="Olaf Otto" />
-    <meta name="Date-Creation-yyyymmdd" content="20181214" />
+    <meta name="Date-Creation-yyyymmdd" content="20211101" />
     <meta name="Date-Revision-yyyymmdd" content="20211101" />
     <meta http-equiv="Content-Language" content="en" />
     <title>AEM Maven plugin &#x2013; Starting and stopping a local AEM instance</title>
@@ -84,10 +84,10 @@
          &lt;plugins&gt;
              &lt;plugin&gt;
                  &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
-                 &lt;version&gt;3.1.1&lt;/version&gt;
+                 &lt;version&gt;3.2.0&lt;/version&gt;
                  &lt;executions&gt;
                      &lt;execution&gt;
-                         &lt;id&gt;prepare-cq-quickstart&lt;/id&gt;
+                         &lt;id&gt;prepare-aem-quickstart&lt;/id&gt;
                          &lt;phase&gt;generate-test-resources&lt;/phase&gt;
                          &lt;goals&gt;
                              &lt;goal&gt;unpack&lt;/goal&gt;
@@ -95,9 +95,9 @@
                          &lt;configuration&gt;
                              &lt;artifactItems&gt;
                                  &lt;artifactItem&gt;
-                                     &lt;!-- In this example, this zip contains a quickstart.jar and license.properties --&gt;
+                                     &lt;!-- In this example, we assume this zip contains a quickstart.jar and license.properties --&gt;
                                      &lt;groupId&gt;com.example.company&lt;/groupId&gt;
-                                     &lt;artifactId&gt;aem-6.4&lt;/artifactId&gt;
+                                     &lt;artifactId&gt;aem-6.5&lt;/artifactId&gt;
                                      &lt;version&gt;1.0.0&lt;/version&gt;
                                      &lt;type&gt;zip&lt;/type&gt;
                                      &lt;overWrite&gt;true&lt;/overWrite&gt;

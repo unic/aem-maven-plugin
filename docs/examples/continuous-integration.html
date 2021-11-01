@@ -73,10 +73,10 @@
 <p>Note that this sample config explicitly increases the timeout values for startup and installation - this can be necessary if deployments and configurations cause aem (re-)starts to take long. In addition, the <a class="externalLink" href="https://unic.github.io/aem-maven-plugin/deploy-mojo.html#pauseJcrInstaller">pauseJcrInstaller</a> flag will pause the installer before deployment and activate it afterwards. This means that bundles and configurations are not installed or applied while the deployment is running, thus stabilizing the deployment.</p>
 <div class="source"><pre class="prettyprint"> &lt;plugin&gt;
      &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
-     &lt;version&gt;3.1.1&lt;/version&gt;
+     &lt;version&gt;3.2.0&lt;/version&gt;
      &lt;executions&gt;
          &lt;execution&gt;
-             &lt;id&gt;prepare-cq-quickstart&lt;/id&gt;
+             &lt;id&gt;prepare-aem-quickstart&lt;/id&gt;
              &lt;phase&gt;generate-test-resources&lt;/phase&gt;
              &lt;goals&gt;
                  &lt;goal&gt;unpack&lt;/goal&gt;
@@ -86,7 +86,7 @@
                      &lt;artifactItem&gt;
                          &lt;!-- In this example, this zip contains a quickstart.jar and license.properties --&gt;
                          &lt;groupId&gt;com.example.company&lt;/groupId&gt;
-                         &lt;artifactId&gt;aem-6.4&lt;/artifactId&gt;
+                         &lt;artifactId&gt;aem-6.5&lt;/artifactId&gt;
                          &lt;version&gt;1.0.0&lt;/version&gt;
                          &lt;type&gt;zip&lt;/type&gt;
                          &lt;overWrite&gt;true&lt;/overWrite&gt;
