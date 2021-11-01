@@ -13,18 +13,19 @@
 package com.unic.maven.plugins.aem.util;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
-import static com.unic.maven.plugins.aem.util.Expectation.Outcome.FULFILLED;
-import static com.unic.maven.plugins.aem.util.Expectation.Outcome.RETRY;
-import static com.unic.maven.plugins.aem.util.Expectation.Outcome.UNSATISFIABLE;
+import static com.unic.maven.plugins.aem.util.Expectation.Outcome.*;
 import static java.lang.Thread.sleep;
 
 /**
  * @author Olaf Otto
  */
-public abstract class Expectation {
+public abstract class Expectation<CauseOfFailureType> {
+    private FailureCallback<CauseOfFailureType> callback = null;
+
     public enum Outcome {
         /**
          * Try to {@link Expectation#fulfill() fulfill} the expectation again
@@ -44,12 +45,13 @@ public abstract class Expectation {
 
     /**
      * Allows connecting multiple expectations via AND.
+     *
      * @param other must not be <code>null</code>.
      * @return never <code>null</code>.
      */
-    public Expectation and(@NotNull final Expectation other) {
-        final Expectation self = this;
-        return new Expectation() {
+    public Expectation<CauseOfFailureType> and(@NotNull final Expectation other) {
+        final Expectation<CauseOfFailureType> self = this;
+        return new Expectation<CauseOfFailureType>() {
             @Override
             protected Outcome fulfill() {
                 Outcome first = self.fulfill(), second = other.fulfill();
@@ -63,6 +65,17 @@ public abstract class Expectation {
                 return RETRY;
             }
         };
+    }
+
+    /**
+     * Set the callback that is invoked when the expectation fails. Only one callback can be registered.
+     *
+     * @param callback must not be <code>null</code>
+     * @return this instance, never <code>null</code>.
+     */
+    public Expectation<CauseOfFailureType> onFailure(@NotNull FailureCallback<CauseOfFailureType> callback) {
+        this.callback = callback;
+        return this;
     }
 
     /**
@@ -86,7 +99,7 @@ public abstract class Expectation {
         }
         boolean succeeded = outcome == FULFILLED;
         if (!succeeded) {
-            failed();
+            failed(amount, unit);
         }
         return succeeded;
     }
@@ -103,9 +116,24 @@ public abstract class Expectation {
     protected void firstFailure() {
     }
 
+    private void failed(long amount, @NotNull TimeUnit unit) {
+        if (this.callback != null) {
+            this.callback.callback(amount, unit, failureContext());
+        }
+    }
+
     /**
-     * Subtypes may want to log when the expectation fails.
+     * @return the (last recorded) cause of a failed expectation that caused a {@link Outcome#RETRY} or
+     * {@link Outcome#UNSATISFIABLE}. Can be <code>null</code>. The value is provided
+     * to the {@link FailureCallback} (see {@link #onFailure(FailureCallback)}) when an expectation {@link #failed fails}.
      */
-    protected void failed() {
+    @Nullable
+    protected CauseOfFailureType failureContext() {
+        return null;
+    }
+
+    @FunctionalInterface
+    public interface FailureCallback<T> {
+        void callback(long amount, @NotNull TimeUnit unit, @Nullable T context);
     }
 }

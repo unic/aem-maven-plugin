@@ -29,6 +29,8 @@ import unirest.UnirestException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.unic.maven.plugins.aem.util.Expectation.Outcome.FULFILLED;
+import static com.unic.maven.plugins.aem.util.Expectation.Outcome.RETRY;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -90,7 +92,12 @@ public class AwaitInitialization extends AemMojo {
     }
 
     boolean expectInitializedWithinConfiguredTime() {
-        return aemIsInitialized().within(initializationWaitTime, MINUTES);
+        return aemIsInitialized().onFailure((time, unit, lastFailure) -> {
+            getLog().info(
+                    "AEM did not initialize within " + time + " " + unit + "." +
+                            (lastFailure == null ? "" : " Last issue: " + lastFailure.getMessage() + ".")
+            );
+        }).within(initializationWaitTime, MINUTES);
     }
 
     void failWithPendingInitializationsMessage() throws MojoFailureException, MojoExecutionException {
@@ -129,31 +136,27 @@ public class AwaitInitialization extends AemMojo {
         throw new MojoFailureException(message.toString());
     }
 
-    Expectation aemIsInitialized() {
-        return new Expectation() {
+    Expectation<Exception> aemIsInitialized() {
+        return new Expectation<Exception>() {
             private Exception lastFailure;
+
             @Override
-            protected Outcome fulfill() {
+            protected Expectation.Outcome fulfill() {
                 try {
                     if (!getPendingBundlesInfo().isEmpty() || !getServiceEventInfoSince(getTimeBeforeGracePeriodInMillis()).isEmpty()) {
-                        return Outcome.RETRY;
+                        return RETRY;
                     }
 
-                    return Outcome.FULFILLED;
+                    return FULFILLED;
                 } catch (UnirestException | JSONException e) {
                     lastFailure = e;
-                    return Outcome.RETRY;
+                    return RETRY;
                 }
             }
 
             @Override
-            protected void failed() {
-                if (lastFailure == null) {
-                    getLog().info("AEM did not initialize within " + initializationWaitTime + " minutes.");
-                } else {
-                    getLog().info("AEM did not initialize within " + initializationWaitTime + " minutes. " +
-                                               "Last issue: " + lastFailure.getMessage() + ".", lastFailure);
-                }
+            protected Exception failureContext() {
+                return this.lastFailure;
             }
         };
     }
@@ -192,7 +195,7 @@ public class AwaitInitialization extends AemMojo {
 
         return !ignoreBundle(bundleSymbolicName) &&
                 (isFragment && state != BUNDLE_RESOLVED ||
-                !isFragment && state != BUNDLE_ACTIVE);
+                        !isFragment && state != BUNDLE_ACTIVE);
 
     }
 
