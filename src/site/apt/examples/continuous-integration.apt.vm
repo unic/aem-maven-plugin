@@ -54,10 +54,10 @@ Continuous integration with the aem-maven-plugin
 +-----+
  <plugin>
      <artifactId>maven-dependency-plugin</artifactId>
-     <version>3.1.1</version>
+     <version>3.2.0</version>
      <executions>
          <execution>
-             <id>prepare-cq-quickstart</id>
+             <id>prepare-aem-quickstart</id>
              <phase>generate-test-resources</phase>
              <goals>
                  <goal>unpack</goal>
@@ -67,7 +67,7 @@ Continuous integration with the aem-maven-plugin
                      <artifactItem>
                          <!-- In this example, this zip contains a quickstart.jar and license.properties -->
                          <groupId>com.example.company</groupId>
-                         <artifactId>aem-6.4</artifactId>
+                         <artifactId>aem-6.5</artifactId>
                          <version>1.0.0</version>
                          <type>zip</type>
                          <overWrite>true</overWrite>
