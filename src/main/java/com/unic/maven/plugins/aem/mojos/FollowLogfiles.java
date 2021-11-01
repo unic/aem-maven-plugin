@@ -41,7 +41,7 @@ public class FollowLogfiles extends AemMojo {
     private String[] logfileNames = new String[]{};
 
     /**
-     * Whether to keep following the logs beyond the execution of the mojo.
+     * Whether to keep following the logs beyond the execution of the mojo. Default is true.
      * If true, adds a shutdown hook to the JVM that will stop
      * monitoring when the JVM exits.
      */
