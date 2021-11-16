@@ -57,7 +57,6 @@ public class Deploy extends AemMojo {
      * The artifacts to deploy, in format
      * <code>&lt;groupId&gt;:&lt;artifactId&gt;[:&lt;extension&gt;[:&lt;classifier&gt;]]:&lt;version&gt;</code>
      */
-    @SuppressWarnings("MismatchedReadAndWriteOfArray")
     @Parameter(property = "deploy.artifacts")
     private String[] deployArtifacts = new String[] {};
 

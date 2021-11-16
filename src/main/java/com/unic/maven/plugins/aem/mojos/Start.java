@@ -22,10 +22,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 
 import static com.unic.maven.plugins.aem.util.AwaitableProcess.awaitable;
@@ -38,9 +35,7 @@ import static java.lang.Thread.sleep;
 import static java.util.Arrays.asList;
 import static java.util.Collections.addAll;
 import static java.util.concurrent.Executors.newCachedThreadPool;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.*;
 import static org.codehaus.plexus.util.StringUtils.isEmpty;
 import static org.codehaus.plexus.util.StringUtils.join;
 
@@ -97,6 +92,15 @@ public class Start extends AwaitInitialization {
     @Parameter(defaultValue = "true", property = "startup.keepFollowingStdErrAndOut")
     private boolean followStdOutAndErrBeyondMojoExecution = true;
 
+
+    /**
+     * Reduce console output to the minimum. For instance, the stdout and stderr messages by AEM will
+     * not be shown, unless the startup fails, in which event the recorded stdout / stderr output of the AEM process
+     * will be printed.
+     */
+    @Parameter(defaultValue = "false", property = "startup.silent")
+    private boolean silent = false;
+
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {
         if (this.followStdOutAndErrBeyondMojoExecution) {
@@ -126,7 +130,7 @@ public class Start extends AwaitInitialization {
 
         final Process aem = startAem();
 
-        Expectation aemIsStarted = expect("<status code=\"200\">ok</status>")
+        Expectation<?> aemIsStarted = expect("<status code=\"200\">ok</status>")
                 .from(getAemBaseUrl() + "/crx/packmgr/service.jsp?cmd=ls")
                 .withCredentials("admin", getAdminPassword());
 
@@ -147,15 +151,17 @@ public class Start extends AwaitInitialization {
 
     @NotNull
     private Process startAem() throws MojoFailureException, MojoExecutionException {
+        List<String> recordedStdOut = new LinkedList<>();
+        List<String> recordedStdErr = new LinkedList<>();
+
         try {
             ProcessBuilder builder = new ProcessBuilder().directory(getAemDirectory()).command(getCommands());
             logCommands(builder);
             Process process = builder.start();
 
             // Log all stdout and stderr output of the quickstart execution. This is crucial to understand startup issues.
-            // log stderr to info as the quickstart jar is using it for info output.
-            this.executorService.execute(followProcessErrorStream(process, getLog(), line -> getLog().error("<stderr> " + line)));
-            this.executorService.execute(followProcessInputStream(process, getLog(), line -> getLog().info(" <stdout> " + line)));
+            this.executorService.execute(followProcessErrorStream(process, getLog(), silent ? recordedStdErr::add : this::logStdErr));
+            this.executorService.execute(followProcessInputStream(process, getLog(), silent ? recordedStdOut::add : this::logStdOut));
 
             // Grace period: If the AEM process does not terminate within the first five seconds
             // after it was started, we assume the startup was successfully initiated and that it is
@@ -170,12 +176,28 @@ public class Start extends AwaitInitialization {
             }
 
             if (aemExecutionResult.isTerminated()) {
+                if (silent) {
+                    recordedStdErr.forEach(this::logStdErr);
+                    recordedStdOut.forEach(this::logStdOut);
+                }
                 throw new MojoFailureException("Unable to start AEM - the quickstart process terminated with exit code: " + aemExecutionResult.getExitCode());
             }
             return process;
         } catch (IOException | InterruptedException e) {
+            if (silent) {
+                recordedStdErr.forEach(this::logStdErr);
+                recordedStdOut.forEach(this::logStdOut);
+            }
             throw new MojoFailureException("Unable to start AEM.", e);
         }
+    }
+
+    private void logStdOut(String line) {
+        getLog().info("<stdout> " + line);
+    }
+
+    private void logStdErr(String line) {
+        getLog().error("<stderr> " + line);
     }
 
     private List<String> getCommands() throws MojoFailureException, MojoExecutionException {

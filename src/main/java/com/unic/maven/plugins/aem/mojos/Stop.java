@@ -28,11 +28,11 @@ import java.io.IOException;
 
 import static com.unic.maven.plugins.aem.util.AwaitableProcess.awaitable;
 import static com.unic.maven.plugins.aem.util.ExceptionUtil.getRootCause;
+import static com.unic.maven.plugins.aem.util.Expectation.Outcome.FULFILLED;
+import static com.unic.maven.plugins.aem.util.Expectation.Outcome.RETRY;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.*;
 
 /**
  * Stops running AEM instances conflicting with the current AEM instance.
@@ -87,7 +87,7 @@ public class Stop extends Kill {
         }
     }
 
-    private boolean shutdownAem() throws MojoFailureException, MojoExecutionException {
+    private boolean shutdownAem() {
         getLog().info("Checking whether system/console is available...");
         if (!systemConsoleIsAvailable().within(20, SECONDS)) {
             getLog().info("Unable to gracefully shutdown AEM: the system/console is not available.");
@@ -122,15 +122,15 @@ public class Stop extends Kill {
     }
 
     @NotNull
-    private Expectation systemConsoleIsAvailable() {
-        return new Expectation() {
+    private Expectation<?> systemConsoleIsAvailable() {
+        return new Expectation<Object>() {
             @Override
             protected Outcome fulfill() {
                 try {
                     return Unirest.get("http://localhost:" + getHttpPort() + getContextPath() + "/system/console/vmstat")
                             .basicAuth("admin", getAdminPassword())
                             .asString()
-                            .getStatus() == 200 ? Outcome.FULFILLED : Outcome.RETRY;
+                            .getStatus() == 200 ? FULFILLED : RETRY;
                 } catch (UnirestException e) {
                     return Outcome.UNSATISFIABLE;
                 }

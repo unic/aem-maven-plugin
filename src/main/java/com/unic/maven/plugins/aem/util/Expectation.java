@@ -49,7 +49,7 @@ public abstract class Expectation<CauseOfFailureType> {
      * @param other must not be <code>null</code>.
      * @return never <code>null</code>.
      */
-    public Expectation<CauseOfFailureType> and(@NotNull final Expectation other) {
+    public Expectation<CauseOfFailureType> and(@NotNull final Expectation<?> other) {
         final Expectation<CauseOfFailureType> self = this;
         return new Expectation<CauseOfFailureType>() {
             @Override

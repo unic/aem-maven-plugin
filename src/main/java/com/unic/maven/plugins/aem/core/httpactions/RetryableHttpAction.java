@@ -141,8 +141,8 @@ public abstract class RetryableHttpAction<ResponseType, ResultType> {
     @NotNull
     protected abstract HttpResponse<ResponseType> perform() throws UnirestException, InterruptedException;
 
-    static Expectation packageManagerApiIsAvailable(final Configuration configuration) {
-        return new Expectation() {
+    static Expectation<?> packageManagerApiIsAvailable(final Configuration configuration) {
+        return new Expectation<Object>() {
             @Override
             protected Outcome fulfill() {
                 try {

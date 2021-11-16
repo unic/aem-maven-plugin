@@ -53,7 +53,6 @@ public class ValidateContent extends AbstractMojo {
      * Additional directories containing JCR XML content for import into AEM that shall be validated by the
      * validate-xml mojo.
      */
-    @SuppressWarnings("MismatchedReadAndWriteOfArray")
     @Parameter(property = "content.directories")
     private File[] contentDirectories = new File[]{};
 

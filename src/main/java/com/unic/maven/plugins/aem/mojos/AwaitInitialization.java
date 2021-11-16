@@ -92,12 +92,10 @@ public class AwaitInitialization extends AemMojo {
     }
 
     boolean expectInitializedWithinConfiguredTime() {
-        return aemIsInitialized().onFailure((time, unit, lastFailure) -> {
-            getLog().info(
-                    "AEM did not initialize within " + time + " " + unit + "." +
-                            (lastFailure == null ? "" : " Last issue: " + lastFailure.getMessage() + ".")
-            );
-        }).within(initializationWaitTime, MINUTES);
+        return aemIsInitialized().onFailure((time, unit, lastFailure) -> getLog().info(
+                "AEM did not initialize within " + time + " " + unit + "." +
+                        (lastFailure == null ? "" : " Last issue: " + lastFailure.getMessage() + ".")
+        )).within(initializationWaitTime, MINUTES);
     }
 
     void failWithPendingInitializationsMessage() throws MojoFailureException, MojoExecutionException {

@@ -108,7 +108,6 @@ public abstract class AemMojo extends AbstractMojo {
         return aemDirectory;
     }
 
-
     boolean isUseControlPort() {
         return this.useControlPort;
     }
@@ -120,7 +119,6 @@ public abstract class AemMojo extends AbstractMojo {
             return false;
         }
     }
-
 
     @Override
     public final void execute() throws MojoExecutionException, MojoFailureException {

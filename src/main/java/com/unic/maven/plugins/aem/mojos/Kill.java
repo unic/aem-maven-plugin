@@ -210,8 +210,8 @@ public class Kill extends AemMojo {
     }
 
     @NotNull
-    private Expectation aemProcessTerminated() {
-        return new Expectation() {
+    private Expectation<?> aemProcessTerminated() {
+        return new Expectation<Object>() {
             @Override
             protected Outcome fulfill() {
                 return getPidsOfConflictingAemInstances().isEmpty() ? FULFILLED : RETRY;

@@ -28,7 +28,7 @@ import static org.codehaus.plexus.util.StringUtils.isEmpty;
  *
  * @author Olaf Otto
  */
-public class HttpExpectation extends Expectation {
+public class HttpExpectation extends Expectation<Object> {
     private URL url;
     private String user = null, password = null;
     private int expectedStatusCode = 200;
@@ -70,12 +70,11 @@ public class HttpExpectation extends Expectation {
 
     @Override
     protected Outcome fulfill() {
-        HttpRequest request = method == HttpMethod.GET ? Unirest.get(this.url.toExternalForm()) : Unirest.post(this.url.toExternalForm());
+        HttpRequest<?> request = method == HttpMethod.GET ? Unirest.get(this.url.toExternalForm()) : Unirest.post(this.url.toExternalForm());
         try {
             if (!isEmpty(this.user)) {
                 request = request.basicAuth(this.user, this.password);
             }
-            @SuppressWarnings("unchecked")
             HttpResponse<String> response = request.asString();
             if (response.getStatus() == this.expectedStatusCode) {
                 if (this.expectedResponseContent == null) {
