@@ -99,7 +99,7 @@ public class Start extends AwaitInitialization {
      * will be printed.
      */
     @Parameter(defaultValue = "false", property = "startup.silent")
-    private boolean silent = false;
+    private boolean silentStartup = false;
 
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {
@@ -160,8 +160,8 @@ public class Start extends AwaitInitialization {
             Process process = builder.start();
 
             // Log all stdout and stderr output of the quickstart execution. This is crucial to understand startup issues.
-            this.executorService.execute(followProcessErrorStream(process, getLog(), silent ? recordedStdErr::add : this::logStdErr));
-            this.executorService.execute(followProcessInputStream(process, getLog(), silent ? recordedStdOut::add : this::logStdOut));
+            this.executorService.execute(followProcessErrorStream(process, getLog(), silentStartup ? recordedStdErr::add : this::logStdErr));
+            this.executorService.execute(followProcessInputStream(process, getLog(), silentStartup ? recordedStdOut::add : this::logStdOut));
 
             // Grace period: If the AEM process does not terminate within the first five seconds
             // after it was started, we assume the startup was successfully initiated and that it is
@@ -176,7 +176,7 @@ public class Start extends AwaitInitialization {
             }
 
             if (aemExecutionResult.isTerminated()) {
-                if (silent) {
+                if (silentStartup) {
                     recordedStdErr.forEach(this::logStdErr);
                     recordedStdOut.forEach(this::logStdOut);
                 }
@@ -184,7 +184,7 @@ public class Start extends AwaitInitialization {
             }
             return process;
         } catch (IOException | InterruptedException e) {
-            if (silent) {
+            if (silentStartup) {
                 recordedStdErr.forEach(this::logStdErr);
                 recordedStdOut.forEach(this::logStdOut);
             }
