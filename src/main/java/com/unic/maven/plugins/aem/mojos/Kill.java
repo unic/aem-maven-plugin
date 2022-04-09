@@ -69,10 +69,12 @@ public class Kill extends AemMojo {
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {
         try {
+            	List<Integer> pids = getPidsOfConflictingAemInstances();
+
             if (killConflictingAemInstances() || aemProcessTerminated().within(5, SECONDS)) {
-                getLog().info("All conflicting AEM processes were terminated");
+                getLog().info("AEM processes " + pids + " successfully terminated");
             } else {
-                throw new MojoExecutionException("Unable to terminate conflicting AEM instances:" +
+                throw new MojoExecutionException("Unable to terminate all AEM instances:" +
                         " The process(es) " + getPidsOfConflictingAemInstances() + " are still running.");
             }
         } finally {
@@ -81,17 +83,17 @@ public class Kill extends AemMojo {
     }
 
     boolean killConflictingAemInstances() throws MojoExecutionException {
-        getLog().info("Looking for running AEM processes to end...");
+        getLog().info("Looking for running AEM instances to end...");
         List<Integer> pids = getPidsOfConflictingAemInstances();
 
         if (pids.isEmpty()) {
-            getLog().info("No running AEM processes found - the processes may have already terminated.");
+            getLog().info("No running AEM instances found - the processes may have already terminated.");
             // Process already gone
             return true;
         }
 
         for (int pid : pids) {
-            getLog().info("Ending AEM process with PID " + pid + "...");
+            getLog().info("Ending AEM instance with PID " + pid + "...");
             ProcessBuilder builder = new ProcessBuilder();
             if (isWindows()) {
                 builder.command("taskkill", "/F", "/PID", Integer.toString(pid));
@@ -103,7 +105,7 @@ public class Kill extends AemMojo {
                     return false;
                 }
             } catch (IOException | InterruptedException e) {
-                throw new MojoExecutionException("Unable to end AEM process with PID " + pid + ".", e);
+                throw new MojoExecutionException("Unable to end AEM instance with PID " + pid + ".", e);
             }
         }
 
