@@ -86,12 +86,11 @@ public abstract class AemMojo extends AbstractMojo {
     protected File targetDirectory;
 
     /**
-     * If true the AEM Control Port feature is enabled and used for stopping the instance. If false the old behaviour of open the HTML
-     * Felix console and clicking on the stop button is used.
+     * If true the AEM Control Port feature is enabled and used for stopping the instance.
+     * If false the system console HTTP API is used to stop the AEM instance.
      */
-    @Parameter(defaultValue = "true", property = "use.controlport")
+    @Parameter(defaultValue = "false", property = "use.controlport")
     protected boolean useControlPort;
-
 
     /**
      * @return the AEM directory, i.e. target/aem/[aemType], e.g. target/aem/author

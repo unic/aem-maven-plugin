@@ -69,7 +69,7 @@ public class Stop extends Kill {
             getLog().info("AEM is not installed.");
             killConflictingAemInstances();
         } else {
-            boolean shutdownComplete = isUseControlPort() ? shutdownAemUsingControlPort() : shutdownAem();
+            boolean shutdownComplete = isUseControlPort() ? shutdownAemUsingControlPort() : shutdownAemViaSystemConsole();
             if (!shutdownComplete) {
                 shutdownComplete = killConflictingAemInstances();
             }
@@ -87,7 +87,7 @@ public class Stop extends Kill {
         }
     }
 
-    private boolean shutdownAem() {
+    private boolean shutdownAemViaSystemConsole() {
         getLog().info("Checking whether system/console is available...");
         if (!systemConsoleIsAvailable().within(20, SECONDS)) {
             getLog().info("Unable to gracefully shutdown AEM: the system/console is not available.");
@@ -161,7 +161,7 @@ public class Stop extends Kill {
             Process process = builder.start();
 
             int processResult = awaitable(process).awaitTermination(1, MINUTES).getExitCode();
-            if (processResult > 0) {
+            if (processResult != 0) {
                 getLog().info("Stopping AEM using the quickstart stop command failed with error code " + processResult);
                 return false;
             }
