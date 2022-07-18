@@ -221,11 +221,31 @@ public class AwaitInitialization extends AemMojo {
             JSONObject eventData = events.getJSONObject(i);
             String topic = eventData.getString("topic");
             long received = eventData.getLong("received");
-            if (received >= since && topic.startsWith(TOPIC_SERVICE_NAMESPACE)) {
+            if (
+                    received >= since &&
+                    !isIgnored(
+                            topic,
+                            eventData.getJSONObject("properties"),
+                            eventData.getString("info")
+                    )
+            ) {
                 eventInformation.add(eventData.getString("info"));
             }
         }
         return eventInformation;
+    }
+
+    /**
+     * The event log is known to contain noise in the form of
+     * <pre>
+     * {"offset":477805,"width":100,"topic":"org/osgi/framework/ServiceEvent/MODIFIED","received":1658177526824,"id":"249","category":"service","properties":{},"info":"Service (id=48, objectClass=org.osgi.service.component.runtime.ServiceComponentRuntime, bundle=org.apache.felix.scr) modified"}
+     * </pre>
+     * These entries do not represent initialization-related state changes and must be ignored.
+     */
+    private boolean isIgnored(String topic, JSONObject properties, String info) {
+        return "org/osgi/framework/ServiceEvent/MODIFIED".equals(topic) &&
+               properties != null && properties.isEmpty() &&
+               info != null && info.contains("objectClass=org.osgi.service.component.runtime.ServiceComponentRuntime");
     }
 
     private HttpResponse<JsonNode> getJson(String path) throws UnirestException {
