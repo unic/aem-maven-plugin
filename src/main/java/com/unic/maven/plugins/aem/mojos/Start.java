@@ -54,13 +54,13 @@ public class Start extends AwaitInitialization {
      * The run modes for this instance, in addition to {@link #getAemType()}.
      */
     @Parameter(property = "run.modes")
-    private String[] runModes = new String[]{};
+    protected String[] runModes = new String[]{};
 
     /**
      * Use this amount of heap. Example: 2048M.
      */
     @Parameter(defaultValue = "2048M", property = "heap.size")
-    private String heapSize;
+    protected String heapSize;
 
     /**
      * Use this for adding custom vmOptions to the AEM startup, e.g. agents for
@@ -76,13 +76,13 @@ public class Start extends AwaitInitialization {
      * </pre>
      */
     @Parameter(property = "startup.vmOptions")
-    private String[] startupVmOptions = new String[]{};
+    protected String[] startupVmOptions = new String[]{};
 
     /**
      * Wait up to this number of minutes for AEM to start
      */
     @Parameter(defaultValue = "2", property = "startup.waitTime")
-    private int startupWaitTime = 2;
+    protected int startupWaitTime = 2;
 
     /**
      * Whether to keep following stderr and stdout of the started AEM instance
@@ -90,7 +90,7 @@ public class Start extends AwaitInitialization {
      * that will stop stderr and stdout monitoring when the JVM exits.
      */
     @Parameter(defaultValue = "true", property = "startup.keepFollowingStdErrAndOut")
-    private boolean followStdOutAndErrBeyondMojoExecution = true;
+    protected boolean followStdOutAndErrBeyondMojoExecution = true;
 
 
     /**
@@ -99,7 +99,7 @@ public class Start extends AwaitInitialization {
      * will be printed.
      */
     @Parameter(defaultValue = "false", property = "startup.silent")
-    private boolean silentStartup = false;
+    protected boolean silentStartup = false;
 
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {

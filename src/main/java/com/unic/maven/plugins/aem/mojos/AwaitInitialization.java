@@ -59,20 +59,20 @@ public class AwaitInitialization extends AemMojo {
      * Wait up to this number of minutes for AEM to initialize, i.e. for all bundles and components to start.
      */
     @Parameter(defaultValue = "2", property = "init.waitTime")
-    private int initializationWaitTime = 2;
+    protected int initializationWaitTime = 2;
 
     /**
      * Wait this amount of seconds before beginning state tests on the components.
      */
     @Parameter(defaultValue = "5", property = "init.gracePeriod")
-    private int initializationGracePeriod = 5;
+    protected int initializationGracePeriod = 5;
 
     /**
      * Ignores the defined bundles during initialization check by given regex checks.
      * The regex is checked against the bundle's symbolic name.
      */
     @Parameter(property = "ignore.bundlesRegex")
-    private String[] ignoreBundlesRegex = new String[]{};
+    protected String[] ignoreBundlesRegex = new String[]{};
 
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {

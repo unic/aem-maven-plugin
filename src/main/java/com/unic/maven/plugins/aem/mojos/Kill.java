@@ -64,7 +64,7 @@ public class Kill extends AemMojo {
      * resources - such as files or network ports - are freed.
      */
     @Parameter(defaultValue = "5", property = "kill.gracePeriod")
-    private int killGracePeriod;
+    protected int killGracePeriod;
 
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {

@@ -51,14 +51,14 @@ public class Stop extends Kill {
      * Wait up to this number of minutes for AEM to stop
      */
     @Parameter(defaultValue = "2", property = "shutdown.waitTime")
-    private int shutdownWaitTime = 2;
+    protected int shutdownWaitTime = 2;
 
     /**
      * After terminating an AEM process, wait for this amount of seconds to make sure that process
      * resources - such as files or network ports - are freed.
      */
     @Parameter(defaultValue = "5", property = "shutdown.gracePeriod")
-    private int shutdownGracePeriod;
+    protected int shutdownGracePeriod;
 
     @Override
     public void runMojo() throws MojoExecutionException, MojoFailureException {

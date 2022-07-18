@@ -38,59 +38,59 @@ public abstract class AemMojo extends AbstractMojo {
      * The schema + hostname of the AEM instance, e.g. "http://localhost".
      */
     @Parameter(defaultValue = "http://localhost", property = "base.url")
-    private String baseUrl;
+    protected String baseUrl;
 
     /**
      * The context path of the AEM instance.
      */
     @Parameter(property = "context.path")
-    private String contextPath = "";
+    protected String contextPath = "";
 
     /**
      * The password of the "admin" user.
      */
     @Parameter(property = "password", defaultValue = "admin")
-    private String adminPassword = "admin";
+    protected String adminPassword = "admin";
 
     /**
      * The instance type, e.g. "author" or "publish".
      */
     @Parameter(defaultValue = "author", property = "aem.type")
-    private AemType aemType;
+    protected AemType aemType;
 
     /**
      * The AEM HTTP port. Defaults to 4502 for an author and 4503 for a publish {@link #aemType AEM type}.
      */
     @Parameter(defaultValue = "-1", property = "http.port")
-    private int httpPort;
+    protected int httpPort;
 
     /**
      * Use this debug port for remote debugging on the instance.
      */
     @Parameter(defaultValue = "30303", property = "debug.port")
-    private int debugPort;
+    protected int debugPort;
 
     /**
      * Whether remote debugging shall be available for the started instance via the configured {@link #debugPort port}.
      */
     @Parameter(defaultValue = "true", property = "debug.enabled")
-    private boolean debugEnabled = true;
+    protected boolean debugEnabled = true;
 
     /**
      * Use this JRE to start the AEM instance.
      */
     @Parameter(defaultValue = "${java.home}", property = "java.home")
-    private String javaHome;
+    protected String javaHome;
 
     @Parameter(defaultValue = "${project.build.directory}", readonly = true, property = "target.directory")
-    private File targetDirectory;
+    protected File targetDirectory;
 
     /**
      * If true the AEM Control Port feature is enabled and used for stopping the instance. If false the old behaviour of open the HTML
      * Felix console and clicking on the stop button is used.
      */
     @Parameter(defaultValue = "true", property = "use.controlport")
-    private boolean useControlPort;
+    protected boolean useControlPort;
 
 
     /**
