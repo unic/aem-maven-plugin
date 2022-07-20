@@ -89,7 +89,7 @@ public abstract class AemMojo extends AbstractMojo {
      * If true the AEM Control Port feature is enabled and used for stopping the instance.
      * If false the system console HTTP API is used to stop the AEM instance.
      */
-    @Parameter(defaultValue = "false", property = "use.controlport")
+    @Parameter(defaultValue = "true", property = "use.controlport")
     protected boolean useControlPort;
 
     /**
