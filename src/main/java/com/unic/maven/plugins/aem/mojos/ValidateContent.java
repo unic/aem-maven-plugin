@@ -12,6 +12,7 @@
  */
 package com.unic.maven.plugins.aem.mojos;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -32,14 +33,17 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.unic.maven.plugins.aem.util.ExceptionUtil.getRootCause;
 import static javax.xml.xpath.XPathConstants.NODESET;
 import static javax.xml.xpath.XPathFactory.newInstance;
-import static org.codehaus.plexus.util.FileUtils.getFiles;
-import static org.codehaus.plexus.util.StringUtils.join;
 
 /**
  * Performs XML validation of all XML files within a directory, by default within src/main/content (see {@link #contentDirectory}). This can be used
@@ -82,7 +86,7 @@ public class ValidateContent extends AbstractMojo {
         }
 
         if (!validationErrors.isEmpty()) {
-            throw new MojoFailureException(validationErrors.size() + " invalid XML files found: \n" + join(validationErrors.iterator(), "\n"));
+            throw new MojoFailureException(validationErrors.size() + " invalid XML files found: \n" + StringUtils.join(validationErrors.iterator(), "\n"));
         }
     }
 
@@ -112,14 +116,16 @@ public class ValidateContent extends AbstractMojo {
         return failedValidations;
     }
 
-    private List<File> getXmlFiles(@NotNull File directory) throws MojoExecutionException {
-        List<File> files;
-        try {
-            files = getFiles(directory, "**/*.xml", null);
+    public Set<File> getXmlFiles(@NotNull File directory) throws MojoExecutionException {
+        try (Stream<Path> stream = Files.list(directory.toPath())) {
+            return stream
+                    .filter(file -> !Files.isDirectory(file))
+                    .filter(path -> path.endsWith("xml"))
+                    .map(Path::toFile)
+                    .collect(Collectors.toSet());
         } catch (IOException e) {
             throw new MojoExecutionException("Unable to collect all XML files in " + directory.getAbsolutePath() + ": " + e.getMessage(), e);
         }
-        return files;
     }
 
     private List<ValidationError> validateDocumentContainsNoUUIDs(File file, Document document) {
