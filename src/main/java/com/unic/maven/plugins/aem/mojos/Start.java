@@ -15,6 +15,7 @@ package com.unic.maven.plugins.aem.mojos;
 import com.unic.maven.plugins.aem.util.AwaitableProcess.ExecutionResult;
 import com.unic.maven.plugins.aem.util.Expectation;
 import com.unic.maven.plugins.aem.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -36,8 +37,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.addAll;
 import static java.util.concurrent.Executors.newCachedThreadPool;
 import static java.util.concurrent.TimeUnit.*;
-import static org.codehaus.plexus.util.StringUtils.isEmpty;
-import static org.codehaus.plexus.util.StringUtils.join;
 
 /**
  * Starts a local AEM instance using a quickstart jar. The quickstart jar must have been provided before hand. Supports setting arbitrary VM parameters
@@ -230,14 +229,14 @@ public class Start extends AwaitInitialization {
                 "-nofork",
                 "-nobrowser",
                 "-verbose",
-                "-r", join(runModes.iterator(), ","),
+                "-r", StringUtils.join(runModes.iterator(), ","),
                 "-port", Integer.toString(getHttpPort())));
         if (isUseControlPort()) {
             commands.add("-use-control-port");
         }
 
         // Servlet context path - by default, AEM runs at the root context.
-        if (!isEmpty(getContextPath())) {
+        if (StringUtils.isNotBlank(getContextPath())) {
             commands.add("-contextpath");
             commands.add(getContextPath());
         }

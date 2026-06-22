@@ -12,6 +12,7 @@
  */
 package com.unic.maven.plugins.aem.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import unirest.HttpRequest;
 import unirest.HttpResponse;
@@ -21,7 +22,6 @@ import unirest.UnirestException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static org.codehaus.plexus.util.StringUtils.isEmpty;
 
 /**
  * Used to check for responses from HTTP endpoints in a given time.
@@ -72,7 +72,7 @@ public class HttpExpectation extends Expectation<Object> {
     protected Outcome fulfill() {
         HttpRequest<?> request = method == HttpMethod.GET ? Unirest.get(this.url.toExternalForm()) : Unirest.post(this.url.toExternalForm());
         try {
-            if (!isEmpty(this.user)) {
+            if (StringUtils.isNotBlank(this.user)) {
                 request = request.basicAuth(this.user, this.password);
             }
             HttpResponse<String> response = request.asString();

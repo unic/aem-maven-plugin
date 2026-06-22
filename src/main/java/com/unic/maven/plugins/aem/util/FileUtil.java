@@ -12,12 +12,11 @@
  */
 package com.unic.maven.plugins.aem.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-
-import static org.codehaus.plexus.util.StringUtils.join;
 
 public class FileUtil {
 
@@ -36,7 +35,7 @@ public class FileUtil {
         }
         if (jarFiles.length > 1) {
             throw new MojoExecutionException("Unable to determine the jar file, more than one jar file " +
-                    "was found in the AEM directory " + directory + ": " + join(jarFiles, ", ") + ".");
+                    "was found in the AEM directory " + directory + ": " + StringUtils.join(jarFiles, ", ") + ".");
         }
         return jarFiles[0].getName();
     }
